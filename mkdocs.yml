@@ -51,6 +51,7 @@ nav:
       - Validators: 'api/validators.md'
       - Processors: 'api/processors.md'
       - Exceptions: 'api/exceptions.md'
+  - Changelog: 'changelog.md'
 
 
 
