@@ -5,8 +5,17 @@ uploading them to various storage such as Amazon S3, Rackspace CloudFiles, Googl
 using [Apache Libcloud](https://github.com/apache/libcloud).
 
 <p align="center">
+<a href="https://github.com/jowilf/sqlalchemy-file/actions">
+    <img src="https://github.com/jowilf/sqlalchemy-file/actions/workflows/test.yml/badge.svg" alt="Test suite">
+</a>
+<a href="https://github.com/jowilf/sqlalchemy-file/actions">
+    <img src="https://github.com/jowilf/sqlalchemy-file/actions/workflows/publish.yml/badge.svg" alt="Publish">
+</a>
 <a href="https://pypi.org/project/sqlalchemy-file/">
     <img src="https://badge.fury.io/py/sqlalchemy-file.svg" alt="Package version">
+</a>
+<a href="https://pypi.org/project/sqlalchemy-file/">
+    <img src="https://img.shields.io/pypi/pyversions/sqlalchemy-file?color=2334D058" alt="Supported Python versions">
 </a>
 </p>
 
@@ -32,7 +41,7 @@ The key features are:
 
 ---
 
-**Documentation**: [https://github.com/jowilf/sqlalchemy-file](https://github.com/jowilf/sqlalchemy-file)
+**Documentation**: [https://jowilf.github.io/sqlalchemy-file](https://jowilf.github.io/sqlalchemy-file/)
 
 **Source Code**: [https://github.com/jowilf/sqlalchemy-file](https://github.com/jowilf/sqlalchemy-file)
 
@@ -72,8 +81,7 @@ from libcloud.storage.drivers.local import LocalStorageDriver
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
-
-from sqlalchemy_file import FileField, File
+from sqlalchemy_file import File, FileField
 from sqlalchemy_file.storage import StorageManager
 
 Base = declarative_base()

@@ -33,7 +33,7 @@ The key features are:
 
 ---
 
-**Documentation**: [https://github.com/jowilf/sqlalchemy-file](https://github.com/jowilf/sqlalchemy-file)
+**Documentation**: [https://jowilf.github.io/sqlalchemy-file](https://jowilf.github.io/sqlalchemy-file/)
 
 **Source Code**: [https://github.com/jowilf/sqlalchemy-file](https://github.com/jowilf/sqlalchemy-file)
 
