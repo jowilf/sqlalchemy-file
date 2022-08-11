@@ -26,5 +26,5 @@ jobs:
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry config pypi-token.pypi $PYPI_TOKEN_SQLALCHEMY_FILE
           poetry publish --build
