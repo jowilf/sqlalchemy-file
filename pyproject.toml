@@ -1,9 +1,7 @@
 [tool.poetry]
 name = "sqlalchemy-file"
 version = "0.1.1"
-description = """SQLAlchemy-file is a SQLAlchemy extension for attaching files
-         to SQLAlchemy model and uploading them to various storage such as Amazon S3,
-         Rackspace CloudFiles, Google Storage and others using Apache Libcloud."""
+description = "SQLAlchemy-file is a SQLAlchemy extension for attaching files to SQLAlchemy model and uploading them to various storage."
 authors = ["Jocelin Hounon <hounonj@gmail.com>"]
 license = "MIT"
 readme = "README.md"
