@@ -24,7 +24,7 @@ jobs:
         run: poetry install
       - name: Publish
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.$PYPI_TOKEN_SQLALCHEMY_FILE }}
         run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN_SQLALCHEMY_FILE
+          poetry config pypi-token.pypi $PYPI_TOKEN
           poetry publish --build
