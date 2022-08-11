@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Library</title>
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+    <style>
+        td,th {
+            text-align: center;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <header class="pb-3 mb-4 border-bottom">
+        <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="32" fill="currentColor" class="bi bi-book-half"
+                 viewBox="0 0 16 16">
+                <path d="M8.5 2.687c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+            </svg>
+            <span class="ms-2 fs-4">Library</span>
+        </a>
+    </header>
+    <div class="row">
+        <div class="col-4">
+            {% if error%}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>{{error.key}}: </strong> {{error.msg}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {%endif%}
+            <form method="post" action="." enctype="multipart/form-data">
+                <fieldset class="mb-3">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title"
+                               value="{{form.title}}"
+                               placeholder="...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Author</label>
+                        <input type="text" class="form-control" id="author" name="author"
+                               value="{{form.author}}"
+                               placeholder="...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="cover" class="form-label">Cover</label>
+                        <input class="form-control" type="file" id="cover" name="cover" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <label for="document" class="form-label">Document</label>
+                        <input class="form-control" type="file" id="document" name="document">
+                    </div>
+                </fieldset>
+                <button type="submit" class="btn btn-primary w-100">Add Book</button>
+            </form>
+        </div>
+        <div class="col-8">
+            <table class="table table-hover table-striped table-bordered">
+                <thead>
+                <tr>
+                    <th scope="col">ISBN</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Author</th>
+                    <th scope="col">Cover</th>
+                    <th scope="col">Document</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if books | length == 0%}
+                <tr>
+                    <td colspan="5" class="text-center">No data found.</td>
+                </tr>
+                {%else%}
+                {%for book in books%}
+                <tr>
+                    <th scope="row">{{book.isbn}}</th>
+                    <td>{{book.title}}</td>
+                    <td>{{book.author}}</td>
+                    {% if book.cover%}
+                    <td>
+                        <img src="{{url_for('index')}}medias/{{book.cover.thumbnail.path}}" class="img-thumbnail" alt="{{book.cover.filename}}">
+
+                        {%else%}
+                    <td>-</td>
+                    {%endif%}
+                    {% if book.document%}
+                    <td><a href="{{url_for('index')}}medias/{{book.document.path}}">{{book.document.filename}}</a>
+                        {%else%}
+                    <td>-</td>
+                    {%endif%}
+                    </td>
+                </tr>
+                {%endfor%}
+                {%endif%}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
