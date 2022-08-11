@@ -1,4 +1,4 @@
-name: Python package
+name: Test suite
 
 on:
   push:
@@ -93,5 +93,3 @@ jobs:
         run: poetry run bash scripts/coverage.sh
       - name: Upload coverage
         uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}

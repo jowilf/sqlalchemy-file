@@ -7,7 +7,7 @@ description = """SQLAlchemy-file is a SQLAlchemy extension for attaching files
 authors = ["Jocelin Hounon <hounonj@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/jowilf/sqlalchemy-file"
+homepage = "https://jowilf.github.io/sqlalchemy-file"
 repository = "https://github.com/jowilf/sqlalchemy-file"
 classifiers = [
     'Development Status :: 4 - Beta',
@@ -33,7 +33,6 @@ SQLAlchemy = ">=1.4,<1.5.0"
 apache-libcloud = "^3.6.0"
 
 [tool.poetry.dev-dependencies]
-filedepot = "^0.8.0"
 pytest = "^7.1.2"
 sqlmodel = "^0.0.6"
 Pillow = "^9.2.0"
