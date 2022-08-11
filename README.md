@@ -6,8 +6,20 @@ uploading them to various storage such as Amazon S3, Rackspace CloudFiles, Googl
 using [Apache Libcloud](https://github.com/apache/libcloud).
 
 <p align="center">
+<a href="https://github.com/jowilf/sqlalchemy-file/actions">
+    <img src="https://github.com/jowilf/sqlalchemy-file/actions/workflows/test.yml/badge.svg" alt="Test suite">
+</a>
+<a href="https://github.com/jowilf/sqlalchemy-file/actions">
+    <img src="https://github.com/jowilf/sqlalchemy-file/actions/workflows/publish.yml/badge.svg" alt="Publish">
+</a>
+<a href="https://codecov.io/gh/jowilf/sqlalchemy-file">
+    <img src="https://codecov.io/gh/jowilf/sqlalchemy-file/branch/main/graph/badge.svg" alt="Codecov">
+</a>
 <a href="https://pypi.org/project/sqlalchemy-file/">
     <img src="https://badge.fury.io/py/sqlalchemy-file.svg" alt="Package version">
+</a>
+<a href="https://pypi.org/project/sqlalchemy-file/">
+    <img src="https://img.shields.io/pypi/pyversions/sqlalchemy-file?color=2334D058" alt="Supported Python versions">
 </a>
 </p>
 
@@ -73,8 +85,7 @@ from libcloud.storage.drivers.local import LocalStorageDriver
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
-
-from sqlalchemy_file import FileField, File
+from sqlalchemy_file import File, FileField
 from sqlalchemy_file.storage import StorageManager
 
 Base = declarative_base()
@@ -113,6 +124,6 @@ with Session(engine) as session:
 ## Related projects and inspirations
 
 * [Depot: ](https://github.com/amol-/depot) When I was looking for a library like this, depot was the
-best I saw. But it supports few storage backend, doesn't support multiple files, doesn't work with 
-[SQLModel](https://github.com/tiangolo/sqlmodel) and doesn't provide a way to validate files. This project inspired **SQLAlchemy-file** extensively
+best I saw. But it offers less storage backend, doesn't support multiple files and doesn't work with 
+[SQLModel](https://github.com/tiangolo/sqlmodel). This project inspired **SQLAlchemy-file** extensively
 and some features are implemented the same.

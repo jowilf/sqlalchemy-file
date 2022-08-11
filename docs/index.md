@@ -11,6 +11,9 @@ using [Apache Libcloud](https://github.com/apache/libcloud).
 <a href="https://github.com/jowilf/sqlalchemy-file/actions">
     <img src="https://github.com/jowilf/sqlalchemy-file/actions/workflows/publish.yml/badge.svg" alt="Publish">
 </a>
+<a href="https://codecov.io/gh/jowilf/sqlalchemy-file">
+    <img src="https://codecov.io/gh/jowilf/sqlalchemy-file/branch/main/graph/badge.svg" alt="Codecov">
+</a>
 <a href="https://pypi.org/project/sqlalchemy-file/">
     <img src="https://badge.fury.io/py/sqlalchemy-file.svg" alt="Package version">
 </a>
