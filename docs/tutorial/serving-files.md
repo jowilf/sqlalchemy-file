@@ -1,9 +1,10 @@
 # Serving Files
 
 ## With FastApi
+
 ```Python
 @app.get("/medias/{storage}/{file_id}", response_class=FileResponse)
-def serving_files(storage: str = Path(...), file_id: str = Path(...)):
+def serve_files(storage: str = Path(...), file_id: str = Path(...)):
     try:
         file = StorageManager.get_file(f"{storage}/{file_id}")
         if isinstance(file.object.driver, LocalStorageDriver):
@@ -25,12 +26,15 @@ def serving_files(storage: str = Path(...), file_id: str = Path(...)):
     except ObjectDoesNotExistError:
         return JSONResponse({"detail": "Not found"}, status_code=404)
 ```
-See Full example [here]()
+
+See full
+example [here](https://github.com/jowilf/sqlalchemy-file/blob/d51ba57215e364cc14c4e0a61456567091ce51c1/examples/fastapi_app.py#L123)
 
 ## With Flask
+
 ```Python
 @app.route("/medias/<storage>/<file_id>")
-def serving_files(storage, file_id):
+def serve_files(storage, file_id):
     try:
         file = StorageManager.get_file(f"{storage}/{file_id}")
         if isinstance(file.object.driver, LocalStorageDriver):
@@ -54,4 +58,6 @@ def serving_files(storage, file_id):
     except ObjectDoesNotExistError:
         abort(404)
 ```
-See Full example [here]()
+
+See full
+example [here](https://github.com/jowilf/sqlalchemy-file/blob/d51ba57215e364cc14c4e0a61456567091ce51c1/examples/flask_app.py#L78)

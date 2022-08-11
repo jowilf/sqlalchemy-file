@@ -120,7 +120,7 @@ def create_new(category: Category = Depends(category_form)):
 
 
 @app.get("/medias/{storage}/{file_id}", response_class=FileResponse)
-def serving_files(storage: str = Path(...), file_id: str = Path(...)):
+def serve_files(storage: str = Path(...), file_id: str = Path(...)):
     try:
         file = StorageManager.get_file(f"{storage}/{file_id}")
         if isinstance(file.object.driver, LocalStorageDriver):

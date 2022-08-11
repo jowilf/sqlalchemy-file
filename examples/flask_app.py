@@ -75,7 +75,7 @@ def index():
 
 
 @app.route("/medias/<storage>/<file_id>")
-def serving_files(storage, file_id):
+def serve_files(storage, file_id):
     try:
         file = StorageManager.get_file(f"{storage}/{file_id}")
         if isinstance(file.object.driver, LocalStorageDriver):
