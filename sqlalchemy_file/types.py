@@ -34,6 +34,7 @@ class FileField(types.TypeDecorator):  # type: ignore
     """
 
     impl = types.JSON
+    cache_ok = True
 
     def __init__(
         self,
