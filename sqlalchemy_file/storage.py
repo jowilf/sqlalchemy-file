@@ -2,7 +2,7 @@ from typing import Any, Dict, Iterator, Optional
 
 from libcloud.storage.base import Container
 from libcloud.storage.types import ObjectDoesNotExistError
-from sqlalchemy_file.helpers import get_metadata_file_obj, LOCAL_STORAGE_DRIVER_NAME
+from sqlalchemy_file.helpers import LOCAL_STORAGE_DRIVER_NAME, get_metadata_file_obj
 from sqlalchemy_file.stored_file import StoredFile
 
 

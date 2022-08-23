@@ -1,4 +1,4 @@
-__version__ = "0.1.0"
+__version__ = "0.1.3"
 
 from .file import File as File
 from .types import FileField as FileField

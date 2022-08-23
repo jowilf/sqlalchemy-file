@@ -4,7 +4,6 @@ from typing import Optional
 
 from libcloud.storage.base import Object
 from libcloud.storage.types import ObjectDoesNotExistError
-
 from sqlalchemy_file.helpers import LOCAL_STORAGE_DRIVER_NAME
 
 
@@ -32,7 +31,7 @@ class StoredFile:
             return None
 
     def read(self, n: int = -1) -> bytes:
-        if self.object.driver == LOCAL_STORAGE_DRIVER_NAME:
+        if self.object.driver.name == LOCAL_STORAGE_DRIVER_NAME:
             return open(self.object.get_cdn_url(), "rb").read(n)
         _file = tempfile.NamedTemporaryFile()
         self.object.download(_file.name, overwrite_existing=True)

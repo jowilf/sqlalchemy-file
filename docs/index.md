@@ -1,7 +1,7 @@
 # Overview
 
 **SQLAlchemy-file** is a [SQLAlchemy](https://www.sqlalchemy.org/) extension for attaching files to SQLAlchemy model and
-uploading them to various storage such as Amazon S3, Rackspace CloudFiles, Google Storage and others
+uploading them to various storage such as Local Storage, Amazon S3, Rackspace CloudFiles, Google Storage and others
 using [Apache Libcloud](https://github.com/apache/libcloud).
 
 <p align="center">
@@ -122,7 +122,8 @@ with Session(engine) as session:
 
 ## Related projects and inspirations
 
-* [Depot: ](https://github.com/amol-/depot) When I was looking for a library like this, depot was the
-best I saw. But it offers less storage backend, doesn't support multiple files and doesn't work with 
-[SQLModel](https://github.com/tiangolo/sqlmodel). This project inspired **SQLAlchemy-file** extensively
+* [filedepot: ](https://github.com/amol-/depot) When I was looking for a library like this, depot was the
+best I saw. This project inspired **SQLAlchemy-file** extensively
 and some features are implemented the same.
+* [sqlalchemy-media](https://github.com/pylover/sqlalchemy-media) Another attachment extension for SqlAlchemy 
+to manage assets which are associated with database models
