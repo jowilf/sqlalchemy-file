@@ -3,13 +3,14 @@ import tempfile
 from typing import Optional
 
 from libcloud.storage.base import Object
-from libcloud.storage.drivers.local import LocalStorageDriver
 from libcloud.storage.types import ObjectDoesNotExistError
+
+from sqlalchemy_file.helpers import LOCAL_STORAGE_DRIVER_NAME
 
 
 class StoredFile:
     def __init__(self, obj: Object) -> None:
-        if isinstance(obj.driver, LocalStorageDriver):
+        if obj.driver.name == LOCAL_STORAGE_DRIVER_NAME:
             """Retrieve metadata from associated metadata file"""
             try:
                 metadata_obj = obj.container.get_object(f"{obj.name}.metadata.json")
@@ -31,7 +32,7 @@ class StoredFile:
             return None
 
     def read(self, n: int = -1) -> bytes:
-        if isinstance(self.object.driver, LocalStorageDriver):
+        if self.object.driver == LOCAL_STORAGE_DRIVER_NAME:
             return open(self.object.get_cdn_url(), "rb").read(n)
         _file = tempfile.NamedTemporaryFile()
         self.object.download(_file.name, overwrite_existing=True)

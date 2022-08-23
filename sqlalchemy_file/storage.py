@@ -1,9 +1,8 @@
 from typing import Any, Dict, Iterator, Optional
 
 from libcloud.storage.base import Container
-from libcloud.storage.drivers.local import LocalStorageDriver
 from libcloud.storage.types import ObjectDoesNotExistError
-from sqlalchemy_file.helpers import get_metadata_file_obj
+from sqlalchemy_file.helpers import get_metadata_file_obj, LOCAL_STORAGE_DRIVER_NAME
 from sqlalchemy_file.stored_file import StoredFile
 
 
@@ -75,7 +74,7 @@ class StorageManager:
     ) -> StoredFile:
         """Save file into provided `upload_storage`"""
         container = cls.get(upload_storage)
-        if isinstance(container.driver, LocalStorageDriver):
+        if container.driver.name == LOCAL_STORAGE_DRIVER_NAME:
             obj = container.upload_object_via_stream(iterator=content, object_name=name)
             if metadata is not None:
                 """
@@ -115,7 +114,7 @@ class StorageManager:
         """
         upload_storage, file_id = path.split("/")
         obj = StorageManager.get(upload_storage).get_object(file_id)
-        if isinstance(obj.driver, LocalStorageDriver):
+        if obj.driver.name == LOCAL_STORAGE_DRIVER_NAME:
             """Try deleting associated metadata file"""
             try:
                 obj.container.get_object(f"{obj.name}.metadata.json").delete()
