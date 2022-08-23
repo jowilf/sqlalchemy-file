@@ -11,7 +11,7 @@ from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.validators import ImageValidator, Validator
 
 
-class FileField(types.TypeDecorator):
+class FileField(types.TypeDecorator):  # type: ignore
 
     """
     Provides support for storing attachments to **SQLAlchemy** models.
