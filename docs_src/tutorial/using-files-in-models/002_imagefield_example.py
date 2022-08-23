@@ -10,4 +10,4 @@ class Book(Base):
 
     id = Column(Integer, autoincrement=True, primary_key=True)
     title = Column(String(100), unique=True)
-    cover = Column(ImageField)
+    cover = Column(ImageField(thumbnail_size=(128, 128)))

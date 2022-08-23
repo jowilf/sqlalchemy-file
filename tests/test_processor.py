@@ -4,7 +4,6 @@ import tempfile
 import pytest
 from sqlalchemy import Column, Integer, String, select
 from sqlalchemy.orm import Session, declarative_base
-from sqlalchemy_file.processors import ThumbnailGenerator
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import ImageField
 
@@ -36,7 +35,9 @@ class Book(Base):
 
     id = Column(Integer, autoincrement=True, primary_key=True)
     title = Column(String(100), unique=True)
-    cover = Column(ImageField(processors=[ThumbnailGenerator()]))
+    cover = Column(
+        ImageField(thumbnail_size=(128, 128))
+    )  # will add thumbnail generator
 
     def __repr__(self):
         return "<Book: id %s ; name: %s; cover %s;>" % (

@@ -7,6 +7,7 @@ from tempfile import SpooledTemporaryFile
 from typing import Any, Dict, Union
 
 INMEMORY_FILESIZE = 1024 * 1024
+LOCAL_STORAGE_DRIVER_NAME = "Local Storage"
 
 
 def get_metadata_file_obj(metadata: Dict[str, Any]) -> "SpooledTemporaryFile[bytes]":

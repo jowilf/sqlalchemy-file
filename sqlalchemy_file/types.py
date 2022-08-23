@@ -6,7 +6,7 @@ from sqlalchemy.orm import ColumnProperty, Mapper, Session, SessionTransaction
 from sqlalchemy.orm.attributes import get_history
 from sqlalchemy_file.file import File
 from sqlalchemy_file.mutable_list import MutableList
-from sqlalchemy_file.processors import Processor
+from sqlalchemy_file.processors import Processor, ThumbnailGenerator
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.validators import ImageValidator, Validator
 
@@ -34,6 +34,7 @@ class FileField(types.TypeDecorator):  # type: ignore
     """
 
     impl = types.JSON
+    cache_ok = True
 
     def __init__(
         self,
@@ -106,6 +107,7 @@ class ImageField(FileField):
         self,
         *args: Tuple[Any],
         upload_storage: Optional[str] = None,
+        thumbnail_size: Optional[Tuple[int, int]] = None,
         image_validator: Optional[ImageValidator] = None,
         validators: Optional[List[Validator]] = None,
         processors: Optional[List[Processor]] = None,
@@ -118,6 +120,9 @@ class ImageField(FileField):
             upload_storage: storage to use
             image_validator: ImageField use default image
                   validator, Use this property to customize it.
+            thumbnail_size: If set, a thumbnail will be generated
+                from original image using [ThumbnailGenerator]
+                [sqlalchemy_file.processors.ThumbnailGenerator]
             validators: List of additional validators to apply
             processors: List of validators to apply
             upload_type: File class to use, could be
@@ -128,8 +133,11 @@ class ImageField(FileField):
             validators = []
         if image_validator is None:
             image_validator = ImageValidator()
-        assert isinstance(image_validator, ImageValidator)
-        validators.insert(0, image_validator)
+        if thumbnail_size is not None:
+            if processors is None:
+                processors = []
+            processors.append(ThumbnailGenerator(thumbnail_size))
+        validators.append(image_validator)
         super().__init__(
             *args,
             upload_storage=upload_storage,

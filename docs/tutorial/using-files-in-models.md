@@ -29,16 +29,17 @@ You can use two Column type in your model.
 
 Inherits all attributes and methods from [FileField][sqlalchemy_file.types.FileField], but also validates that the
 uploaded file is a valid image.
-!!! info
+!!! note
     Using [ImageField][sqlalchemy_file.types.ImageField] is like
     using  [FileField][sqlalchemy_file.types.FileField]
-    with [ImageValidator][sqlalchemy_file.validators.ImageValidator] 
+    with [ImageValidator][sqlalchemy_file.validators.ImageValidator] and
+    [ThumbnailGenerator][sqlalchemy_file.processors.ThumbnailGenerator]
+    
 
 !!! example
     ```Python
     from sqlalchemy import Column, Integer, String
     from sqlalchemy.ext.declarative import declarative_base
-    
     from sqlalchemy_file import ImageField
     
     Base = declarative_base()
@@ -49,7 +50,7 @@ uploaded file is a valid image.
     
         id = Column(Integer, autoincrement=True, primary_key=True)
         title = Column(String(100), unique=True)
-        cover = Column(ImageField)
+        cover = Column(ImageField(thumbnail_size=(128, 128)))
     ```
 ## Uploaded Files Information
 Whenever a supported object is assigned to a [FileField][sqlalchemy_file.types.FileField] or [ImageField][sqlalchemy_file.types.ImageField]

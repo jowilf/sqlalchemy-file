@@ -1,5 +1,5 @@
 site_name: SQLAlchemy File
-site_description: SQLAlchemy-file is a SQLAlchemy extension for attaching files to SQLAlchemy model and uploading them to various storage such as Amazon S3, Rackspace CloudFiles, Google Storage and others using Apache Libcloud.
+site_description: SQLAlchemy-file is a SQLAlchemy extension for attaching files to SQLAlchemy model and uploading them to various storage such as Local Storage Amazon S3, Rackspace CloudFiles, Google Storage and others using Apache Libcloud.
 site_url: https://jowilf.github.io/sqlalchemy-file
 repo_name: jowilf/sqlalchemy-file
 repo_url: https://github.com/jowilf/sqlalchemy-file
@@ -64,8 +64,8 @@ plugins:
           rendering:
             show_root_heading: true
             show_source: false
-      watch:
-        - sqlalchemy_file
+watch:
+  - sqlalchemy_file
 
 
 extra:
