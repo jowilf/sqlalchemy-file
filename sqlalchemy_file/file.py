@@ -27,7 +27,8 @@ class File(BaseFile):
 
         filename (str):  This is the name of the uploaded file
         file_id:   This is the generated UUID for the uploaded file
-        path:            This is a  compination of `upload_storage` and `file_id` separated by
+        upload_storage:   Name of the storage used to save the uploaded file
+        path:            This is a  combination of `upload_storage` and `file_id` separated by
                         `/`. This will be use later to retrieve the file
         content_type:   This is the content type of the uploaded file
         uploaded_at (datetime):    This is the upload date in ISO format
@@ -88,6 +89,7 @@ class File(BaseFile):
             metadata={"filename": self.filename, "content_type": self.content_type},
         )
         self["file_id"] = stored_file.name
+        self["upload_storage"] = upload_storage
         self["uploaded_at"] = datetime.utcnow().isoformat()
         self["path"] = "%s/%s" % (upload_storage, stored_file.name)
         self["url"] = stored_file.get_cdn_url()
