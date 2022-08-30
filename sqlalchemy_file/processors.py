@@ -114,15 +114,19 @@ class ThumbnailGenerator(Processor):
             f"image/{self.thumbnail_format}".lower(),
         )
         ext = mimetypes.guess_extension(content_type)
-        stored_file = file.store_content(
-            output,
-            upload_storage,
-            metadata={
+        metadata = file.get("metadata", {})
+        metadata.update(
+            {
                 "filename": file["filename"] + f".thumbnail{width}x{height}{ext}",
                 "content_type": content_type,
                 "width": width,
                 "height": height,
-            },
+            }
+        )
+        stored_file = file.store_content(
+            output,
+            upload_storage,
+            metadata=metadata,
         )
         file.update(
             {

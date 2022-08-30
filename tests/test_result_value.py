@@ -68,6 +68,34 @@ class TestResultValue:
             assert attachment.content.dummy_attr == "Dummy data"
             assert "del_attr" not in attachment.content
 
+    def test_file_custom_attributes(self) -> None:
+        with Session(engine) as session:
+            content = File(
+                DummyFile(), custom_key1="custom_value1", custom_key2="custom_value2"
+            )
+            attachment = Attachment(name="Custom attributes", content=content)
+            session.add(attachment)
+            session.commit()
+            attachment = session.execute(
+                select(Attachment).where(Attachment.name == "Custom attributes")
+            ).scalar_one()
+            assert attachment.content["custom_key1"] == "custom_value1"
+            assert attachment.content["custom_key2"] == "custom_value2"
+            assert attachment.content.custom_key1 == "custom_value1"
+            assert attachment.content.custom_key2 == "custom_value2"
+
+    def test_file_additional_metadata(self) -> None:
+        with Session(engine) as session:
+            content = File(DummyFile(), metadata={"key1": "val1", "key2": "val2"})
+            attachment = Attachment(name="Additional metadata", content=content)
+            session.add(attachment)
+            session.commit()
+            attachment = session.execute(
+                select(Attachment).where(Attachment.name == "Additional metadata")
+            ).scalar_one()
+            assert attachment.content.file.object.meta_data["key1"] == "val1"
+            assert attachment.content.file.object.meta_data["key2"] == "val2"
+
     def test_multiple_column_is_list_of_dictlike(self) -> None:
         with Session(engine) as session:
             attachment = Attachment(

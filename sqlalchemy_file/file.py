@@ -43,8 +43,9 @@ class File(BaseFile):
         content: Any,
         filename: Optional[str] = None,
         content_type: Optional[str] = None,
+        **kwargs: Dict[str, Any],
     ) -> None:
-        super().__init__()
+        super().__init__(**kwargs)
         if isinstance(content, dict):
             object.__setattr__(self, "original_content", None)
             object.__setattr__(self, "saved", True)
@@ -83,10 +84,12 @@ class File(BaseFile):
 
     def save_to_storage(self, upload_storage: Optional[str] = None) -> None:
         """Save current file into provided `upload_storage`"""
+        metadata = self.get("metadata", {})
+        metadata.update({"filename": self.filename, "content_type": self.content_type})
         stored_file = self.store_content(
             self.original_content,
             upload_storage,
-            metadata={"filename": self.filename, "content_type": self.content_type},
+            metadata=metadata,
         )
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
