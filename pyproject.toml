@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sqlalchemy-file"
-version = "0.1.3"
+version = "0.1.4"
 description = "SQLAlchemy-file is a SQLAlchemy extension for attaching files to SQLAlchemy model and uploading them to various storage."
 authors = ["Jocelin Hounon <hounonj@gmail.com>"]
 license = "MIT"
