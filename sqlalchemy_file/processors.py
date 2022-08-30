@@ -47,14 +47,15 @@ class ThumbnailGenerator(Processor):
 
         Properties available in `thumbnail` attribute
 
-        - **file_id:** This is the ID of the uploaded thumbnail file
-        - **path:**    This is a upload_storage/file_id path which can
-                       be used with :meth:`StorageManager.get_file` to
-                       retrieve the thumbnail file
-        - **width**    This is the width of the thumbnail image
-        - **height:**  This is the height of the thumbnail image
-        - **url:**     Public url of the uploaded file provided
-                       by libcloud method `Object.get_cdn_url()`
+        - **file_id:**        This is the ID of the uploaded thumbnail file
+        - **upload_storage:** Name of the storage used to save the uploaded file
+        - **path:**           This is a upload_storage/file_id path which can
+                                be used with :meth:`StorageManager.get_file` to
+                                retrieve the thumbnail file
+        - **width**           This is the width of the thumbnail image
+        - **height:**         This is the height of the thumbnail image
+        - **url:**            Public url of the uploaded file provided
+                                by libcloud method `Object.get_cdn_url()`
 
     Example:
         ```Python
@@ -113,15 +114,19 @@ class ThumbnailGenerator(Processor):
             f"image/{self.thumbnail_format}".lower(),
         )
         ext = mimetypes.guess_extension(content_type)
-        stored_file = file.store_content(
-            output,
-            upload_storage,
-            metadata={
+        metadata = file.get("metadata", {})
+        metadata.update(
+            {
                 "filename": file["filename"] + f".thumbnail{width}x{height}{ext}",
                 "content_type": content_type,
                 "width": width,
                 "height": height,
-            },
+            }
+        )
+        stored_file = file.store_content(
+            output,
+            upload_storage,
+            metadata=metadata,
         )
         file.update(
             {
@@ -129,6 +134,7 @@ class ThumbnailGenerator(Processor):
                     "file_id": stored_file.name,
                     "width": width,
                     "height": height,
+                    "upload_storage": upload_storage,
                     "path": "%s/%s" % (upload_storage, stored_file.name),
                     "url": stored_file.get_cdn_url(),
                 }

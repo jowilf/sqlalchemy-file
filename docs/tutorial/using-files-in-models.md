@@ -52,12 +52,104 @@ uploaded file is a valid image.
         title = Column(String(100), unique=True)
         cover = Column(ImageField(thumbnail_size=(128, 128)))
     ```
-## Uploaded Files Information
+## Upload File
+
+Let's say you defined your model like this
+```python
+class Attachment(Base):
+    __tablename__ = "attachment"
+
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    name = Column(String(50), unique=True)
+    content = Column(FileField)
+```
+and configure your storage like this
+```python
+container = LocalStorageDriver("/tmp/storage").get_container("attachment")
+StorageManager.add_storage("default", container)
+```
+
+### Save file object
+
 Whenever a supported object is assigned to a [FileField][sqlalchemy_file.types.FileField] or [ImageField][sqlalchemy_file.types.ImageField]
 it will be converted to a [File][sqlalchemy_file.file.File] object.
+```python
+with Session(engine) as session:
+    session.add(Attachment(name="attachment1", content=open("./example.txt", "rb")))
+    session.add(Attachment(name="attachment2", content=b"Hello world"))
+    session.add(Attachment(name="attachment3", content="Hello world"))
+    file = File(content="Hello World", filename="hello.txt", content_type="text/plain")
+    session.add(Attachment(name="attachment4", content=file))
+    session.commit()
+```
+The file itself will be uploaded to your configured storage, and only the [File][sqlalchemy_file.file.File]
+information will be stored on the database as JSON.
 
-This is the same object you will get back when reloading the models from database and apart from the file itself which is accessible
-through the `.file` property, it provides additional attributes described into the [File][sqlalchemy_file.file.File] documentation itself.
+### Retrieve file object
+
+This is the same [File][sqlalchemy_file.file.File] object you will get back when reloading the models from database and the file itself is accessible
+through the `.file` property. 
+
+!!! note
+    Check the [File][sqlalchemy_file.file.File] documentation for all default attributes save into the database.
+
+```python
+with Session(engine) as session:
+    attachment = session.execute(
+            select(Attachment).where(Attachment.name == "attachment3")
+        ).scalar_one()
+    assert attachment.content.saved # saved is True for saved file
+    assert attachment.content.file.read() == b"Hello world" # access file content
+    assert attachment.content["filename"] is not None # `unnamed` when no filename are provided
+    assert attachment.content["file_id"] is not None # uuid v4
+    assert attachment.content["upload_storage"] == "default"
+    assert attachment.content["content_type"] is not None
+    assert attachment.content["uploaded_at"] is not None
+```
+
+### Save additional information
+
+It's important to note that [File][sqlalchemy_file.file.File] object inherit from python `dict`.
+Therefore, you can add additional information to your file object like a dict object. Just make sure to not use
+the default attributes used by [File][sqlalchemy_file.file.File] object internally.
+
+!!! Example
+    ```python
+    content = File(open("./example.txt", "rb"),custom_key1="custom_value1", custom_key2="custom_value2") 
+    content["custom_key3"] = "custom_value3"
+    attachment = Attachment(name="Dummy", content=content)
+
+    session.add(attachment)
+    session.commit()
+    session.refresh(attachment)
+
+    assert attachment.custom_key1 == "custom_value1" 
+    assert attachment.custom_key2 == "custom_value2"
+    assert attachment["custom_key3"] == "custom_value3"
+    ```
+
+!!! important
+    [File][sqlalchemy_file.file.File] provides also attribute style access. 
+    You can access your keys as attributes.
+
+### Metadata
+
+*SQLAlchemy-file* store the uploaded file with some metadata. Only `filename` and `content_type` are sent by default,
+. You can complete with `metadata` key inside your [File][sqlalchemy_file.file.File] object.
+
+!!! Example
+    ```py hl_lines="2"
+    with Session(engine) as session:
+        content = File(DummyFile(), metadata={"key1": "val1", "key2": "val2"})
+        attachment = Attachment(name="Additional metadata", content=content)
+        session.add(attachment)
+        session.commit()
+        attachment = session.execute(
+            select(Attachment).where(Attachment.name == "Additional metadata")
+        ).scalar_one()
+        assert attachment.content.file.object.meta_data["key1"] == "val1"
+        assert attachment.content.file.object.meta_data["key2"] == "val2"
+    ```
 
 ## Uploading on a Specific Storage
 
@@ -119,7 +211,7 @@ Validators can add additional properties to the file object. For example
 the file object.
 
 **SQLAlchemy-file** has built-in validators to get started, but you can create your own validator
-by extending [ValidationError][sqlalchemy_file.exceptions.ValidationError] base class.
+by extending [Validator][sqlalchemy_file.validators.Validator] base class.
 
 Built-in validators:
 
