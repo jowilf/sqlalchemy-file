@@ -16,7 +16,6 @@ from pydantic import BaseModel
 from sqlalchemy import Column
 from sqlalchemy_file import File, ImageField
 from sqlalchemy_file.exceptions import ValidationError
-from sqlalchemy_file.processors import ThumbnailGenerator
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.validators import SizeValidator
 from sqlmodel import Field, Session, SQLModel, create_engine, select
@@ -69,8 +68,8 @@ class Category(CategoryBase, table=True):
         sa_column=Column(
             ImageField(
                 upload_storage="category",
+                thumbnail_size=(200, 200),
                 validators=[SizeValidator(max_size="1M")],
-                processors=[ThumbnailGenerator(thumbnail_size=(200, 200))],
             )
         )
     )

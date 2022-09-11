@@ -69,7 +69,7 @@ watch:
 extra:
   analytics:
     provider: google
-    property: G-6GVDGPXNYF
+    property: G-DX31D2F61K
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/jowilf
