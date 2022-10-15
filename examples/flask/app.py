@@ -30,7 +30,7 @@ class Book(db.Model):
         ImageField(
             upload_storage="images",
             thumbnail_size=(50, 50),
-            validators=[SizeValidator("16M")],
+            validators=[SizeValidator("1M")],
         )
     )
     document = db.Column(

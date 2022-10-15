@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional, Union
+from typing import Generator, List, Optional, Union
 
 import uvicorn
 from fastapi import Depends, FastAPI
@@ -26,8 +26,7 @@ from starlette.responses import (
     StreamingResponse,
 )
 
-engine = create_engine("sqlite:////tmp/example.db?check_same_thread=False", echo=True)
-
+engine = create_engine("sqlite:///example.db?check_same_thread=False", echo=True)
 
 os.makedirs("/tmp/storage", 0o777, exist_ok=True)
 driver = get_driver(Provider.LOCAL)("/tmp/storage")
@@ -80,7 +79,7 @@ class CategoryOut(CategoryBase):
 
 
 def category_form(
-    name: str = Form(...),
+    name: str = Form(..., min_length=3),
     image: Optional[UploadFile] = FormFile(None),
 ):
     return Category(name=name, image=image)
@@ -89,37 +88,45 @@ def category_form(
 app = FastAPI(title="SQLAlchemy-file Example", debug=True)
 
 
+def get_session() -> Generator[Session, None, None]:
+    session: Session = Session(engine, expire_on_commit=False)
+    try:
+        yield session
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
+
+
 @app.get("/categories", response_model=List[CategoryOut])
-def get_all():
-    with Session(engine) as session:
-        return session.execute(select(Category)).all()
+async def get_all(session: Session = Depends(get_session)):
+    return session.execute(select(Category)).scalars().all()
 
 
 @app.get("/categories/{id}", response_model=CategoryOut)
-def get_one(id: int = Path(...)):
-    with Session(engine) as session:
-        category = session.get(Category, id)
-        if category is not None:
-            return category
-        return JSONResponse({"detail": "Not found"}, status_code=404)
+async def get_one(id: int = Path(...), session: Session = Depends(get_session)):
+    category = session.get(Category, id)
+    if category is not None:
+        return category
+    return JSONResponse({"detail": "Not found"}, status_code=404)
 
 
 @app.post("/categories", response_model=CategoryOut)
-def create_new(category: Category = Depends(category_form)):
-    with Session(engine) as session:
-        try:
-            session.add(category)
-            session.commit()
-            session.refresh(category)
-            return category
-        except ValidationError as e:
-            return JSONResponse(
-                dict(error={"key": e.key, "msg": e.msg}), status_code=422
-            )
+async def create_new(
+    category: Category = Depends(category_form), session: Session = Depends(get_session)
+):
+    try:
+        session.add(category)
+        session.commit()
+        session.refresh(category)
+        return category
+    except ValidationError as e:
+        return JSONResponse(dict(error={"key": e.key, "msg": e.msg}), status_code=422)
 
 
 @app.get("/medias/{storage}/{file_id}", response_class=FileResponse)
-def serve_files(storage: str = Path(...), file_id: str = Path(...)):
+async def serve_files(storage: str = Path(...), file_id: str = Path(...)):
     try:
         file = StorageManager.get_file(f"{storage}/{file_id}")
         if isinstance(file.object.driver, LocalStorageDriver):
