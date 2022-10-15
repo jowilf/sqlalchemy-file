@@ -103,6 +103,8 @@ class ImageField(FileField):
     but also validates that the uploaded object is a valid image.
     """
 
+    cache_ok = True
+
     def __init__(
         self,
         *args: Tuple[Any],
