@@ -50,6 +50,7 @@ uvicorn = "^0.18.2"
 python-multipart = "^0.0.5"
 Flask = "^2.2.2"
 Flask-SQLAlchemy = "^2.5.1"
+importlib-metadata = { version = "<5.0", python = "<=3.7" }
 
 [tool.coverage.report]
 fail_under = 95
