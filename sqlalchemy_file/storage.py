@@ -71,6 +71,7 @@ class StorageManager:
         upload_storage: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
+        extra: Optional[Dict[str, str]] = None
     ) -> StoredFile:
         """Save file into provided `upload_storage`"""
         container = cls.get(upload_storage)
@@ -88,14 +89,14 @@ class StorageManager:
                 )
             return StoredFile(obj)
         else:
-            extra = {}
+            merged_extra = extra.copy() if extra is not None else {}
             if metadata is not None:
                 if "content_type" in metadata:
-                    extra["content_type"] = metadata["content_type"]
-                extra["meta_data"] = metadata
+                    merged_extra["content_type"] = metadata["content_type"]
+                merged_extra["meta_data"] = metadata
             return StoredFile(
                 container.upload_object_via_stream(
-                    iterator=content, object_name=name, extra=extra, headers=headers
+                    iterator=content, object_name=name, extra=merged_extra, headers=headers
                 )
             )
 

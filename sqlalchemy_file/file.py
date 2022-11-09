@@ -84,12 +84,14 @@ class File(BaseFile):
 
     def save_to_storage(self, upload_storage: Optional[str] = None) -> None:
         """Save current file into provided `upload_storage`"""
+        extra = self.get("extra", {})
         metadata = self.get("metadata", {})
         metadata.update({"filename": self.filename, "content_type": self.content_type})
         stored_file = self.store_content(
             self.original_content,
             upload_storage,
             metadata=metadata,
+            extra=extra
         )
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
@@ -104,13 +106,14 @@ class File(BaseFile):
         upload_storage: Optional[str] = None,
         name: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
+        extra: Optional[Dict[str, str]] = None
     ) -> StoredFile:
         """Store content into provided `upload_storage`
         with additional `metadata`. Can be use by processors
         to store additional files.
         """
         name = name or str(uuid.uuid4())
-        stored_file = StorageManager.save_file(name, content, upload_storage, metadata)
+        stored_file = StorageManager.save_file(name, content, upload_storage, metadata, None, extra)
         self["files"].append("%s/%s" % (upload_storage, name))
         return stored_file
 
