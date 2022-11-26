@@ -4,6 +4,5 @@ set -e
 set -x
 
 mypy sqlalchemy_file
-flake8 sqlalchemy_file tests docs_src
-black sqlalchemy_file tests docs_src --check
-isort sqlalchemy_file tests docs_src --check-only
+ruff sqlalchemy_file tests
+black sqlalchemy_file tests --check

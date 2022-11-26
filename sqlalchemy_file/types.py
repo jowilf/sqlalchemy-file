@@ -152,7 +152,7 @@ class ImageField(FileField):
 
 
 class FileFieldSessionTracker(object):
-    mapped_entities: Dict[Type[Any], List[str]] = dict()
+    mapped_entities: Dict[Type[Any], List[str]] = {}
 
     @classmethod
     def delete_files(cls, paths: Set[str], ctx: str) -> None:
@@ -162,9 +162,9 @@ class FileFieldSessionTracker(object):
     @classmethod
     def clear_session(cls, session: Session) -> None:
         if hasattr(session, "_new_files"):
-            del session._new_files  # type: ignore
+            del session._new_files
         if hasattr(session, "_old_files"):
-            del session._old_files  # type: ignore
+            del session._old_files
 
     @classmethod
     def add_new_files_to_session(cls, session: Session, paths: List[str]) -> None:

@@ -31,7 +31,7 @@ class Attachment(SQLModel, table=True):
     __tablename__ = "attachment"
 
     id: int = Field(None, primary_key=True)
-    name: str = Field(..., sa_column_kwargs=dict(unique=True))
+    name: str = Field(..., sa_column_kwargs={"unique": True})
     content: Any = Field(sa_column=Column(FileField))
 
 
