@@ -44,6 +44,7 @@ class FileField(types.TypeDecorator):  # type: ignore
         processors: Optional[List[Processor]] = None,
         upload_type: Type[File] = File,
         multiple: Optional[bool] = False,
+        extra: Optional[Dict[str, Any]] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
         """
@@ -52,8 +53,9 @@ class FileField(types.TypeDecorator):  # type: ignore
               validators: List of validators to apply
               processors: List of validators to apply
               upload_type: File class to use, could be
-                        use to set custom File class
+                        used to set custom File class
               multiple: Use this to save multiple files
+              extra: Extra attributes (driver specific)
         """
         super().__init__(*args, **kwargs)
         if processors is None:
@@ -63,6 +65,7 @@ class FileField(types.TypeDecorator):  # type: ignore
         self.upload_storage = upload_storage
         self.upload_type = upload_type
         self.multiple = multiple
+        self.extra = extra
         self.validators = validators
         self.processors = processors
 
@@ -115,6 +118,7 @@ class ImageField(FileField):
         processors: Optional[List[Processor]] = None,
         upload_type: Type[File] = File,
         multiple: Optional[bool] = False,
+        extra: Optional[Dict[str, str]] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
         """
@@ -128,8 +132,9 @@ class ImageField(FileField):
             validators: List of additional validators to apply
             processors: List of validators to apply
             upload_type: File class to use, could be
-                        use to set custom File class
+                        used to set custom File class
             multiple: Use this to save multiple files
+            extra: Extra attributes (driver specific)
         """
         if validators is None:
             validators = []
@@ -147,6 +152,7 @@ class ImageField(FileField):
             processors=processors,
             upload_type=upload_type,
             multiple=multiple,
+            extra=extra,
             **kwargs,
         )
 
@@ -323,6 +329,8 @@ class FileFieldSessionTracker(object):
         upload_storage = column_type.upload_storage or StorageManager.get_default()
         for value in prepared_values:
             if not getattr(value, "saved", False):
+                if value.get("extra") is None and column_type.extra is not None:
+                    value["extra"] = column_type.extra
                 value.save_to_storage(upload_storage)
                 value.apply_processors(column_type.processors, upload_storage)
         return changed, (

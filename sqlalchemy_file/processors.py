@@ -19,7 +19,7 @@ class Processor:
 
     @abstractmethod
     def process(
-        self, file: "File", upload_storage: Optional[str] = None
+            self, file: "File", upload_storage: Optional[str] = None
     ) -> None:  # pragma: no cover
         """
         Should be overridden in inherited class
@@ -90,9 +90,9 @@ class ThumbnailGenerator(Processor):
     """
 
     def __init__(
-        self,
-        thumbnail_size: Tuple[int, int] = (128, 128),
-        thumbnail_format: str = "PNG",
+            self,
+            thumbnail_size: Tuple[int, int] = (128, 128),
+            thumbnail_format: str = "PNG",
     ) -> None:
         super().__init__()
         self.thumbnail_size = thumbnail_size
@@ -114,7 +114,8 @@ class ThumbnailGenerator(Processor):
             f"image/{self.thumbnail_format}".lower(),
         )
         ext = mimetypes.guess_extension(content_type)
-        metadata = file.get("metadata", {})
+        extra = file.get("extra", {})
+        metadata = extra.get("meta_data", {})
         metadata.update(
             {
                 "filename": file["filename"] + f".thumbnail{width}x{height}{ext}",
@@ -123,10 +124,11 @@ class ThumbnailGenerator(Processor):
                 "height": height,
             }
         )
+        extra.update({"meta_data": metadata})
         stored_file = file.store_content(
             output,
             upload_storage,
-            metadata=metadata,
+            extra=extra,
         )
         file.update(
             {
