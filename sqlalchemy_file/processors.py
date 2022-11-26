@@ -19,7 +19,7 @@ class Processor:
 
     @abstractmethod
     def process(
-            self, file: "File", upload_storage: Optional[str] = None
+        self, file: "File", upload_storage: Optional[str] = None
     ) -> None:  # pragma: no cover
         """
         Should be overridden in inherited class
@@ -90,9 +90,9 @@ class ThumbnailGenerator(Processor):
     """
 
     def __init__(
-            self,
-            thumbnail_size: Tuple[int, int] = (128, 128),
-            thumbnail_format: str = "PNG",
+        self,
+        thumbnail_size: Tuple[int, int] = (128, 128),
+        thumbnail_format: str = "PNG",
     ) -> None:
         super().__init__()
         self.thumbnail_size = thumbnail_size
