@@ -28,28 +28,29 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-SQLAlchemy = ">=1.4,<1.5.0"
+SQLAlchemy = ">=1.4,<1.5"
 apache-libcloud = ">=3.6.0,<3.7"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.1.2"
+pytest = "^7.2.0"
+mypy = "0.991"
+black = "22.10.0"
+ruff = "0.0.139"
 sqlmodel = "^0.0.8"
-Pillow = "^9.2.0"
+Pillow = "^9.3.0"
 fasteners = "^0.18"
-black = "^22.6.0"
-coverage = { extras = ["toml"], version = "^6.4.2" }
-mypy = "^0.990"
-mkdocs-material = "^8.4.3"
+coverage = { extras = ["toml"], version = "^6.5.0" }
+mkdocs-material = "^8.5.10"
 PyMySQL = { extras = ["rsa"], version = "^1.0.2" }
-psycopg2-binary = "^2.9.3"
+psycopg2-binary = "^2.9.5"
 mkdocstrings = { extras = ["python"], version = "^0.19.0" }
-fastapi = "^0.85.1"
-uvicorn = "^0.18.2"
+fastapi = "^0.87.0"
+uvicorn = "^0.20.0"
 python-multipart = "^0.0.5"
 Flask = "^2.2.2"
 Flask-SQLAlchemy = "^2.5.1"
 importlib-metadata = { version = "<5.0", python = "<=3.7" }
-ruff = "0.0.139"
+
 
 [tool.coverage.report]
 fail_under = 95
@@ -79,21 +80,7 @@ ignore = ["E501", "B904"]
 known-third-party = ["sqlalchemy_file"]
 
 [tool.mypy]
-disallow_any_generics = true
-disallow_subclassing_any = true
-disallow_untyped_calls = false
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_return_any = true
-implicit_reexport = false
-strict_equality = true
-ignore_missing_imports = true
-exclude = 'tests/'
+strict = true
 
 
 [build-system]

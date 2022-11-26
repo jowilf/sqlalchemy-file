@@ -17,7 +17,7 @@ def get_metadata_file_obj(metadata: Dict[str, Any]) -> "SpooledTemporaryFile[byt
     return f
 
 
-def get_content_from_file_obj(fileobj):  # type: ignore
+def get_content_from_file_obj(fileobj: Any) -> Any:
     """Provides a real file object from file content
     Converts ``str`` and ``bytes`` to an actual file.
     """
@@ -31,7 +31,7 @@ def get_content_from_file_obj(fileobj):  # type: ignore
     return fileobj
 
 
-def get_filename_from_fileob(fileobj):  # type: ignore
+def get_filename_from_fileob(fileobj: Any) -> Any:
     if getattr(fileobj, "filename", None) is not None:
         return fileobj.filename
     elif getattr(fileobj, "name", None) is not None:
@@ -39,13 +39,13 @@ def get_filename_from_fileob(fileobj):  # type: ignore
     return "unnamed"
 
 
-def get_content_type_from_fileobj(fileobj, filename):  # type: ignore
+def get_content_type_from_fileobj(fileobj: Any, filename: str) -> Any:
     if getattr(fileobj, "content_type", None) is not None:
         return fileobj.content_type
     return mimetypes.guess_type(filename, strict=False)[0] or "application/octet-stream"
 
 
-def get_content_size_from_fileobj(file):  # type: ignore
+def get_content_size_from_fileobj(file: Any) -> Any:
     if hasattr(file, "size"):
         return file.size
     if hasattr(file, "name"):

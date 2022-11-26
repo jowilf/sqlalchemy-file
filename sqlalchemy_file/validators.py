@@ -172,7 +172,7 @@ class ImageValidator(ContentTypeValidator):
         max_aspect_ratio: Optional[float] = None,
         allowed_content_types: Optional[List[str]] = None,
     ):
-        from PIL import Image
+        from PIL import Image  # type: ignore
 
         Image.init()
         super().__init__(

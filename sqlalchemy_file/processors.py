@@ -99,7 +99,7 @@ class ThumbnailGenerator(Processor):
         self.thumbnail_format = thumbnail_format
 
     def process(self, file: "File", upload_storage: Optional[str] = None) -> None:
-        from PIL import Image
+        from PIL import Image  # type: ignore
 
         content = file.original_content
         img = Image.open(content)
