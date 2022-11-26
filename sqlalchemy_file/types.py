@@ -152,7 +152,7 @@ class ImageField(FileField):
 
 
 class FileFieldSessionTracker(object):
-    mapped_entities: Dict[Type[Any], List[str]] = dict()
+    mapped_entities: Dict[Type[Any], List[str]] = {}
 
     @classmethod
     def delete_files(cls, paths: Set[str], ctx: str) -> None:

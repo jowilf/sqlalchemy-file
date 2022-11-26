@@ -38,9 +38,7 @@ Pillow = "^9.2.0"
 fasteners = "^0.18"
 black = "^22.6.0"
 coverage = { extras = ["toml"], version = "^6.4.2" }
-flake8 = "^3.9.2"
-mypy = "^0.982"
-isort = "^5.10.1"
+mypy = "^0.990"
 mkdocs-material = "^8.4.3"
 PyMySQL = { extras = ["rsa"], version = "^1.0.2" }
 psycopg2-binary = "^2.9.3"
@@ -51,6 +49,7 @@ python-multipart = "^0.0.5"
 Flask = "^2.2.2"
 Flask-SQLAlchemy = "^2.5.1"
 importlib-metadata = { version = "<5.0", python = "<=3.7" }
+ruff = "0.0.139"
 
 [tool.coverage.report]
 fail_under = 95
@@ -65,13 +64,19 @@ parallel = true
 command_line = "-m pytest"
 source = ["sqlalchemy_file", "tests"]
 
-[tool.isort]
-profile = "black"
-known_third_party = ["sqlalchemy_file"]
-skip_glob = [
-    "sqlalchemy_file/__init__.py",
+[tool.ruff]
+select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "I", # isort
+    "C", # flake8-comprehensions
+    "B", # flake8-bugbear
 ]
-src_paths = ["sqlalchemy_file", "tests"]
+ignore = ["E501", "B904"]
+
+[tool.ruff.isort]
+known-third-party = ["sqlalchemy_file"]
 
 [tool.mypy]
 disallow_any_generics = true

@@ -178,7 +178,7 @@ class ImageValidator(ContentTypeValidator):
         super().__init__(
             allowed_content_types
             if allowed_content_types is not None
-            else [type for type in Image.MIME.values()]
+            else list(Image.MIME.values())
         )
         self.min_width, self.min_height = min_wh if min_wh else (None, None)
         self.max_width, self.max_height = max_wh if max_wh else (None, None)
