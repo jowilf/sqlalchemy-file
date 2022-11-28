@@ -42,7 +42,7 @@ class Attachment(Base):
 
 
 class TestMultipleField:
-    def setup(self) -> None:
+    def setup_method(self, method) -> None:
         Base.metadata.create_all(engine)
         StorageManager._clear()
         StorageManager.add_storage("test", get_test_container("test-multiple-field"))
@@ -355,7 +355,7 @@ class TestMultipleField:
             for file_id in file_ids:
                 assert StorageManager.get().get_object(file_id) is not None
 
-    def teardown(self):
+    def teardown_method(self, method):
         for obj in StorageManager.get().list_objects():
             obj.delete()
         StorageManager.get().delete()
