@@ -44,7 +44,7 @@ mkdocs-material = "^8.5.10"
 PyMySQL = { extras = ["rsa"], version = "^1.0.2" }
 psycopg2-binary = "^2.9.5"
 mkdocstrings = { extras = ["python"], version = "^0.19.0" }
-fastapi = "^0.87.0"
+fastapi = "^0.88.0"
 uvicorn = "^0.20.0"
 python-multipart = "^0.0.5"
 Flask = "^2.2.2"
