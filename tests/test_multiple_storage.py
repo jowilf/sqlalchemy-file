@@ -21,7 +21,7 @@ class Attachment(Base):
 
 
 class TestMultipleStorage:
-    def setup(self) -> None:
+    def setup_method(self, method) -> None:
         Base.metadata.create_all(engine)
         StorageManager._clear()
         StorageManager.add_storage("first", get_test_container("first"))
@@ -50,7 +50,7 @@ class TestMultipleStorage:
                 StorageManager.get("second").get_object(first_fileid)
             session.rollback()
 
-    def teardown(self):
+    def teardown_method(self, method):
         StorageManager.get("first").delete()
         StorageManager.get("second").delete()
         Base.metadata.drop_all(engine)

@@ -63,7 +63,7 @@ class Article(Base):
 
 
 class TestSingleField:
-    def setup(self) -> None:
+    def setup_method(self, method) -> None:
         Base.metadata.create_all(engine)
         StorageManager._clear()
         StorageManager.add_storage("test", get_test_container("test-simple-field"))
@@ -301,7 +301,7 @@ class TestSingleField:
             session.rollback()
             assert StorageManager.get_file(file_path) is not None
 
-    def teardown(self):
+    def teardown_method(self, method):
         for obj in StorageManager.get().list_objects():
             obj.delete()
         StorageManager.get().delete()

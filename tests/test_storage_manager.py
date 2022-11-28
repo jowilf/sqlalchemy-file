@@ -5,7 +5,7 @@ from tests.utils import get_dummy_container
 
 
 class TestStorageManager:
-    def setup(self) -> None:
+    def setup_method(self, method) -> None:
         StorageManager._clear()
 
     def test_first_configured_is_default(self) -> None:
