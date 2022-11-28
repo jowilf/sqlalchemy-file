@@ -48,7 +48,7 @@ fastapi = "^0.87.0"
 uvicorn = "^0.20.0"
 python-multipart = "^0.0.5"
 Flask = "^2.2.2"
-Flask-SQLAlchemy = "^2.5.1"
+Flask-SQLAlchemy = "^3.0.2"
 importlib-metadata = { version = "<5.0", python = "<=3.7" }
 
 
