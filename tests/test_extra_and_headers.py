@@ -12,22 +12,25 @@ from tests.utils import get_dummy_container, get_test_engine
 engine = get_test_engine()
 Base = declarative_base()
 
-EXTRA = {
-    "acl": "private",
-    "dummy_key": "dummy_value",
-    "meta_data": {"key1": "value1", "key2": "value2"},
-}
-
-HEADERS = {"Access-Control-Allow-Origin": "http://test.com", "X-KEY": "xxxxxxx"}
-
 
 class Attachment(Base):
     __tablename__ = "attachment"
 
     id = Column(Integer, autoincrement=True, primary_key=True)
     name = Column(String(50), unique=True)
-    content = Column(FileField())
-    content_with_extra = Column(FileField(extra=EXTRA, headers=HEADERS))
+    content = Column(
+        FileField(
+            extra={
+                "acl": "private",
+                "dummy_key": "dummy_value",
+                "meta_data": {"key1": "value1", "key2": "value2"},
+            },
+            headers={
+                "Access-Control-Allow-Origin": "http://test.com",
+                "Custom-Key": "xxxxxxx",
+            },
+        )
+    )
 
 
 @pytest.fixture
@@ -48,26 +51,22 @@ def session(engine: Engine) -> Session:
 
 
 def test_each_file_inherit_extra_from_field(session: Session):
-    attachment = Attachment(name="Protected document", content_with_extra=DummyFile())
+    attachment = Attachment(name="Protected document", content=DummyFile())
     session.add(attachment)
     session.commit()
     session.refresh(attachment)
-    assert attachment.content_with_extra.file.object.extra["acl"] == "private"
-    assert attachment.content_with_extra.file.object.extra["dummy_key"] == "dummy_value"
-    assert (
-        attachment.content_with_extra.file.object.extra["meta_data"]["key1"] == "value1"
-    )
-    assert (
-        attachment.content_with_extra.file.object.extra["meta_data"]["key2"] == "value2"
-    )
+    assert attachment.content.file.object.extra["acl"] == "private"
+    assert attachment.content.file.object.extra["dummy_key"] == "dummy_value"
+    assert attachment.content.file.object.extra["meta_data"]["key1"] == "value1"
+    assert attachment.content.file.object.extra["meta_data"]["key2"] == "value2"
 
 
 def test_overriding_default_extra(session: Session):
     attachment = Attachment(
         name="Public document",
-        content_with_extra=File(DummyFile(), extra={"acl": "public-read"}),
+        content=File(DummyFile(), extra={"acl": "public-read"}),
     )
     session.add(attachment)
     session.commit()
     session.refresh(attachment)
-    assert attachment.content_with_extra.file.object.extra["acl"] == "public-read"
+    assert attachment.content.file.object.extra["acl"] == "public-read"
