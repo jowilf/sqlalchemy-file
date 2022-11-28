@@ -106,6 +106,7 @@ class File(BaseFile):
             self.original_content,
             upload_storage,
             extra=extra,
+            headers=self.get("headers"),
         )
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
@@ -121,6 +122,7 @@ class File(BaseFile):
         name: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         extra: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
     ) -> StoredFile:
         """Store content into provided `upload_storage`
         with additional `metadata`. Can be use by processors
@@ -128,7 +130,12 @@ class File(BaseFile):
         """
         name = name or str(uuid.uuid4())
         stored_file = StorageManager.save_file(
-            name, content, upload_storage, metadata, extra
+            name=name,
+            content=content,
+            upload_storage=upload_storage,
+            metadata=metadata,
+            extra=extra,
+            headers=headers,
         )
         self["files"].append("%s/%s" % (upload_storage, name))
         return stored_file

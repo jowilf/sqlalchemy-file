@@ -45,6 +45,7 @@ class FileField(types.TypeDecorator):  # type: ignore
         upload_type: Type[File] = File,
         multiple: Optional[bool] = False,
         extra: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
         """
@@ -56,6 +57,9 @@ class FileField(types.TypeDecorator):  # type: ignore
                         used to set custom File class
               multiple: Use this to save multiple files
               extra: Extra attributes (driver specific)
+              headers: Additional request headers,
+                such as CORS headers. For example:
+                headers = {'Access-Control-Allow-Origin': 'http://mozilla.com'}
         """
         super().__init__(*args, **kwargs)
         if processors is None:
@@ -66,6 +70,7 @@ class FileField(types.TypeDecorator):  # type: ignore
         self.upload_type = upload_type
         self.multiple = multiple
         self.extra = extra
+        self.headers = headers
         self.validators = validators
         self.processors = processors
 
@@ -119,6 +124,7 @@ class ImageField(FileField):
         upload_type: Type[File] = File,
         multiple: Optional[bool] = False,
         extra: Optional[Dict[str, str]] = None,
+        headers: Optional[Dict[str, str]] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
         """
@@ -153,6 +159,7 @@ class ImageField(FileField):
             upload_type=upload_type,
             multiple=multiple,
             extra=extra,
+            headers=headers,
             **kwargs,
         )
 
@@ -329,7 +336,12 @@ class FileFieldSessionTracker(object):
         upload_storage = column_type.upload_storage or StorageManager.get_default()
         for value in prepared_values:
             if not getattr(value, "saved", False):
-                if value.get("extra") is None and column_type.extra is not None:
+                if column_type.extra is not None and value.get("extra", None) is None:
+                    value["extra"] = column_type.extra
+                if (
+                    column_type.headers is not None
+                    and value.get("headers", None) is None
+                ):
                     value["extra"] = column_type.extra
                 value.save_to_storage(upload_storage)
                 value.apply_processors(column_type.processors, upload_storage)

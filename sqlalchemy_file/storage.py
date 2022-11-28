@@ -87,25 +87,25 @@ class StorageManager:
             }
         """Save file into provided `upload_storage`"""
         container = cls.get(upload_storage)
-        if container.driver.name == LOCAL_STORAGE_DRIVER_NAME:
-            obj = container.upload_object_via_stream(iterator=content, object_name=name)
-            if extra is not None and extra.get("meta_data", None) is not None:
-                """
-                Libcloud local storage driver doesn't support metadata, so the metadata
-                is saved in the same container with the combination of the original name
-                and `.metadata.json` as name
-                """
-                container.upload_object_via_stream(
-                    iterator=get_metadata_file_obj(extra["meta_data"]),
-                    object_name=f"{name}.metadata.json",
-                )
-            return StoredFile(obj)
-        else:
-            return StoredFile(
-                container.upload_object_via_stream(
-                    iterator=content, object_name=name, extra=extra, headers=headers
-                )
+        if (
+            container.driver.name == LOCAL_STORAGE_DRIVER_NAME
+            and extra is not None
+            and extra.get("meta_data", None) is not None
+        ):
+            """
+            Libcloud local storage driver doesn't support metadata, so the metadata
+            is saved in the same container with the combination of the original name
+            and `.metadata.json` as name
+            """
+            container.upload_object_via_stream(
+                iterator=get_metadata_file_obj(extra["meta_data"]),
+                object_name=f"{name}.metadata.json",
             )
+        return StoredFile(
+            container.upload_object_via_stream(
+                iterator=content, object_name=name, extra=extra, headers=headers
+            )
+        )
 
     @classmethod
     def get_file(cls, path: str) -> StoredFile:
