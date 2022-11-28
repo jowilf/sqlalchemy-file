@@ -88,7 +88,7 @@ class File(BaseFile):
         extra = self.get("extra", {})
         extra.update({"content_type": self.content_type})
 
-        metadata = self.get("metadata", {})
+        metadata = self.get("metadata", None)
         if metadata is not None:
             warnings.warn(
                 'metadata attribute is deprecated. Use extra={"meta_data": ...} instead',
@@ -106,7 +106,7 @@ class File(BaseFile):
             self.original_content,
             upload_storage,
             extra=extra,
-            headers=self.get("headers"),
+            headers=self.get("headers", None),
         )
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage

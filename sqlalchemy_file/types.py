@@ -342,7 +342,7 @@ class FileFieldSessionTracker(object):
                     column_type.headers is not None
                     and value.get("headers", None) is None
                 ):
-                    value["extra"] = column_type.extra
+                    value["headers"] = column_type.headers
                 value.save_to_storage(upload_storage)
                 value.apply_processors(column_type.processors, upload_storage)
         return changed, (
