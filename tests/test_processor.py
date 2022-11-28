@@ -48,7 +48,7 @@ class Book(Base):
 
 
 class TestThumbnailGenerator:
-    def setup(self) -> None:
+    def setup_method(self, method) -> None:
         Base.metadata.create_all(engine)
         StorageManager._clear()
         StorageManager.add_storage("test", get_test_container("test-processor"))
@@ -70,7 +70,7 @@ class TestThumbnailGenerator:
             assert book.cover["thumbnail"]["width"] == thumbnail.width
             assert book.cover["thumbnail"]["height"] == thumbnail.height
 
-    def teardown(self):
+    def teardown_method(self, method):
         for obj in StorageManager.get().list_objects():
             obj.delete()
         StorageManager.get().delete()

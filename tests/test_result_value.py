@@ -52,7 +52,7 @@ class Attachment(Base):
 
 
 class TestResultValue:
-    def setup(self) -> None:
+    def setup_method(self, method) -> None:
         Base.metadata.create_all(engine)
         StorageManager._clear()
         StorageManager.add_storage("test", get_dummy_container("test-result-value"))
@@ -147,5 +147,5 @@ class TestResultValue:
                 with pytest.raises(TypeError):
                     delattr(content, "dummy_attr")
 
-    def teardown(self):
+    def teardown_method(self, method):
         Base.metadata.drop_all(engine)

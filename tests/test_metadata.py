@@ -8,7 +8,7 @@ from tests.utils import get_test_container
 
 
 class TestMetadata:
-    def setup(self) -> None:
+    def setup_method(self, method) -> None:
         StorageManager._clear()
         StorageManager.add_storage("test", get_test_container("test-metadata"))
 
@@ -44,5 +44,5 @@ class TestMetadata:
         assert stored_file.content_type == "application/octet-stream"
         StorageManager.delete_file("test/test_metadata.txt")
 
-    def teardown(self):
+    def teardown_method(self, method):
         StorageManager.get().delete()
