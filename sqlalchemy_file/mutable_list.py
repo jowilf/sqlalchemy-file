@@ -24,7 +24,6 @@ class MutableList(Mutable, typing.List[T]):
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
         super(MutableList, self).__init__(*args, **kwargs)
         self._removed: List[T] = []
-        # logging.warning(('init', self._removed, args, kwargs))
 
     @classmethod
     def coerce(cls, key: Any, value: Any) -> Any:

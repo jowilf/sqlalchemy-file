@@ -132,8 +132,59 @@ the default attributes used by [File][sqlalchemy_file.file.File] object internal
     [File][sqlalchemy_file.file.File] provides also attribute style access. 
     You can access your keys as attributes.
 
+### Extra & Headers
+
+`Apache-libcloud` allow you to store each object with some `extra` attributes or additional `headers`. 
+
+They are two ways to add `extra` and `headers` with *sqlalchemy-file*
+
+- on field declaration (shared by all associated files)
+
+```python
+
+class Attachment(Base):
+    __tablename__ = "attachment"
+
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    name = Column(String(50), unique=True)
+    content = Column(
+        FileField(
+            extra={
+                "acl": "private",
+                "dummy_key": "dummy_value",
+                "meta_data": {"key1": "value1", "key2": "value2"},
+            },
+            headers={
+                "Access-Control-Allow-Origin": "http://test.com",
+                "Custom-Key": "xxxxxxx",
+            },
+        )
+    )
+
+```
+
+- in your [File][sqlalchemy_file.file.File] object
+
+!!! important
+    When the Field has default `extra` attribute, it's overridden by [File][sqlalchemy_file.file.File] object `extra`
+    attribute
+```python hl_lines="4"
+with Session(engine) as session:
+    attachment = Attachment(
+            name="Public document",
+            content=File(DummyFile(), extra={"acl": "public-read"}),
+        )
+    session.add(attachment)
+    session.commit()
+    session.refresh(attachment)
+    
+    assert attachment.content.file.object.extra["acl"] == "public-read"
+```
 ### Metadata
 
+!!! warning
+    This attribute is now deprecated, migrate to [extra](#extra-headers)
+    
 *SQLAlchemy-file* store the uploaded file with some metadata. Only `filename` and `content_type` are sent by default,
 . You can complete with `metadata` key inside your [File][sqlalchemy_file.file.File] object.
 
@@ -153,7 +204,7 @@ the default attributes used by [File][sqlalchemy_file.file.File] object internal
 
 ## Uploading on a Specific Storage
 
-By default all the files are uploaded on the default storage which is the first added storage. This can be changed
+By default, all the files are uploaded on the default storage which is the first added storage. This can be changed
 by passing a `upload_storage` argument explicitly on field declaration:
 
 ```Python

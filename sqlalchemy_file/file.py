@@ -1,4 +1,5 @@
 import uuid
+import warnings
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -84,12 +85,28 @@ class File(BaseFile):
 
     def save_to_storage(self, upload_storage: Optional[str] = None) -> None:
         """Save current file into provided `upload_storage`"""
-        metadata = self.get("metadata", {})
-        metadata.update({"filename": self.filename, "content_type": self.content_type})
+        extra = self.get("extra", {})
+        extra.update({"content_type": self.content_type})
+
+        metadata = self.get("metadata", None)
+        if metadata is not None:
+            warnings.warn(
+                'metadata attribute is deprecated. Use extra={"meta_data": ...} instead',
+                DeprecationWarning,
+            )
+            extra.update({"meta_data": metadata})
+
+        if extra.get("meta_data", None) is None:
+            extra["meta_data"] = {}
+
+        extra["meta_data"].update(
+            {"filename": self.filename, "content_type": self.content_type}
+        )
         stored_file = self.store_content(
             self.original_content,
             upload_storage,
-            metadata=metadata,
+            extra=extra,
+            headers=self.get("headers", None),
         )
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
@@ -104,13 +121,22 @@ class File(BaseFile):
         upload_storage: Optional[str] = None,
         name: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
+        extra: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
     ) -> StoredFile:
         """Store content into provided `upload_storage`
         with additional `metadata`. Can be use by processors
         to store additional files.
         """
         name = name or str(uuid.uuid4())
-        stored_file = StorageManager.save_file(name, content, upload_storage, metadata)
+        stored_file = StorageManager.save_file(
+            name=name,
+            content=content,
+            upload_storage=upload_storage,
+            metadata=metadata,
+            extra=extra,
+            headers=headers,
+        )
         self["files"].append("%s/%s" % (upload_storage, name))
         return stored_file
 

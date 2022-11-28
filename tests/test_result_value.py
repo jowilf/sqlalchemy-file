@@ -1,5 +1,4 @@
 import pytest
-from libcloud.storage.drivers.dummy import DummyFileObject as BaseDummyFileObject
 from sqlalchemy import Column, Integer, String, select
 from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy_file.file import File
@@ -7,20 +6,11 @@ from sqlalchemy_file.processors import Processor
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 
+from tests import DummyFile
 from tests.utils import get_dummy_container, get_test_engine
 
 engine = get_test_engine()
 Base = declarative_base()
-
-
-class DummyFile(BaseDummyFileObject):
-    """Add size just for test purpose"""
-
-    def __init__(self, yield_count=5, chunk_len=10):
-        super().__init__(yield_count, chunk_len)
-        self.size = len(self)
-        self.filename = "dummy-file"
-        self.content_type = "application/octet-stream"
 
 
 class DictLikeCheckerProcessor(Processor):
@@ -84,17 +74,19 @@ class TestResultValue:
             assert attachment.content.custom_key1 == "custom_value1"
             assert attachment.content.custom_key2 == "custom_value2"
 
-    def test_file_additional_metadata(self) -> None:
-        with Session(engine) as session:
-            content = File(DummyFile(), metadata={"key1": "val1", "key2": "val2"})
-            attachment = Attachment(name="Additional metadata", content=content)
-            session.add(attachment)
-            session.commit()
-            attachment = session.execute(
-                select(Attachment).where(Attachment.name == "Additional metadata")
-            ).scalar_one()
-            assert attachment.content.file.object.meta_data["key1"] == "val1"
-            assert attachment.content.file.object.meta_data["key2"] == "val2"
+    def test_file_additional_metadata_deprecated(self) -> None:
+        with pytest.warns(DeprecationWarning, match="metadata attribute is deprecated"):
+            with Session(engine) as session:
+                metadata = {"key1": "val1", "key2": "val2"}
+                content = File(DummyFile(), metadata=metadata)
+                attachment = Attachment(name="Additional metadata", content=content)
+                session.add(attachment)
+                session.commit()
+                attachment = session.execute(
+                    select(Attachment).where(Attachment.name == "Additional metadata")
+                ).scalar_one()
+                assert attachment.content.file.object.meta_data["key1"] == "val1"
+                assert attachment.content.file.object.meta_data["key2"] == "val2"
 
     def test_multiple_column_is_list_of_dictlike(self) -> None:
         with Session(engine) as session:
