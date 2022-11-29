@@ -14,11 +14,12 @@ from sqlalchemy_file.exceptions import ValidationError
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.validators import ContentTypeValidator, SizeValidator
 
+db = SQLAlchemy(engine_options={"echo": True})
 app = Flask(__name__)
 app.config[
     "SQLALCHEMY_DATABASE_URI"
 ] = "sqlite:////tmp/example.db?check_same_thread=False"
-db = SQLAlchemy(app, engine_options={"echo": True})
+db.init_app(app)
 
 
 class Book(db.Model):
@@ -120,5 +121,6 @@ if __name__ == "__main__":
         "documents", driver.get_container(container_name="documents")
     )
 
-    db.create_all()
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)

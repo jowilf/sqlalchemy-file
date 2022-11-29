@@ -35,7 +35,7 @@ apache-libcloud = ">=3.6.0,<3.7"
 pytest = "^7.2.0"
 mypy = "0.991"
 black = "22.10.0"
-ruff = "0.0.143"
+ruff = "0.0.146"
 sqlmodel = "^0.0.8"
 Pillow = "^9.3.0"
 fasteners = "^0.18"
@@ -44,12 +44,11 @@ mkdocs-material = "^8.5.10"
 PyMySQL = { extras = ["rsa"], version = "^1.0.2" }
 psycopg2-binary = "^2.9.5"
 mkdocstrings = { extras = ["python"], version = "^0.19.0" }
-fastapi = "^0.87.0"
+fastapi = "^0.88.0"
 uvicorn = "^0.20.0"
 python-multipart = "^0.0.5"
 Flask = "^2.2.2"
-Flask-SQLAlchemy = "^2.5.1"
-importlib-metadata = { version = "<5.0", python = "<=3.7" }
+Flask-SQLAlchemy = "^3.0.2"
 
 
 [tool.coverage.report]
