@@ -56,7 +56,7 @@ class Book(Base):
     cover = Column(ImageField)
 
     def __repr__(self):
-        return "<Book: id %s ; name: %s; cover %s;>" % (
+        return "<Book: id {} ; name: {}; cover {};>".format(
             self.id,
             self.title,
             self.cover,

@@ -56,7 +56,7 @@ class Attachment(Base):
     )
 
     def __repr__(self):
-        return "<Attachment: id %s ; name: %s; content %s>" % (
+        return "<Attachment: id {} ; name: {}; content {}>".format(
             self.id,
             self.name,
             self.content,

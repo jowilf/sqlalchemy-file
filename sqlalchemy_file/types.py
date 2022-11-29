@@ -164,7 +164,7 @@ class ImageField(FileField):
         )
 
 
-class FileFieldSessionTracker(object):
+class FileFieldSessionTracker:
     mapped_entities: Dict[Type[Any], List[str]] = {}
 
     @classmethod

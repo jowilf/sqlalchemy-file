@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2022-11-28
 
----  
+---
 ### Added
 
 - Allow storage extra & headers attributes in [#18](https://github.com/jowilf/sqlalchemy-file/pull/18)

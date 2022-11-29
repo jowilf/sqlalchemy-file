@@ -37,7 +37,7 @@ class Attachment(Base):
     article_id = Column(Integer, ForeignKey("article.id"))
 
     def __repr__(self):
-        return "<Attachment: id %s ; name: %s; content %s; article_id %s>" % (
+        return "<Attachment: id {} ; name: {}; content {}; article_id {}>".format(
             self.id,
             self.name,
             self.content,

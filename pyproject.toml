@@ -7,6 +7,7 @@ license = "MIT"
 readme = "README.md"
 homepage = "https://jowilf.github.io/sqlalchemy-file"
 repository = "https://github.com/jowilf/sqlalchemy-file"
+documentation = "https://jowilf.github.io/sqlalchemy-file"
 keywords = ["sqlalchemy", "sqlmodel", "file-upload", "apache-libcloud"]
 classifiers = [
     'Development Status :: 4 - Beta',
@@ -31,7 +32,7 @@ python = "^3.7"
 SQLAlchemy = ">=1.4,<1.5"
 apache-libcloud = ">=3.6.0,<3.7"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
 mypy = "0.991"
 black = "22.10.0"
@@ -49,6 +50,7 @@ uvicorn = "^0.20.0"
 python-multipart = "^0.0.5"
 Flask = "^2.2.2"
 Flask-SQLAlchemy = "^3.0.2"
+pre-commit = "^2.20.0"
 
 
 [tool.coverage.report]
@@ -73,7 +75,7 @@ select = [
     "C", # flake8-comprehensions
     "B", # flake8-bugbear
 ]
-ignore = ["E501", "B904"]
+ignore = ["E501", "B904", "B008"]
 
 [tool.ruff.isort]
 known-third-party = ["sqlalchemy_file"]

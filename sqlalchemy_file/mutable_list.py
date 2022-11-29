@@ -22,7 +22,7 @@ class MutableList(Mutable, typing.List[T]):
     """
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore
-        super(MutableList, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._removed: List[T] = []
 
     @classmethod

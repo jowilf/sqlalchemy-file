@@ -1,1 +1,1 @@
-::: sqlalchemy_file.storage.StorageManager 
+::: sqlalchemy_file.storage.StorageManager

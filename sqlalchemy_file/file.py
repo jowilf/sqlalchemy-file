@@ -111,7 +111,7 @@ class File(BaseFile):
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
         self["uploaded_at"] = datetime.utcnow().isoformat()
-        self["path"] = "%s/%s" % (upload_storage, stored_file.name)
+        self["path"] = "{}/{}".format(upload_storage, stored_file.name)
         self["url"] = stored_file.get_cdn_url()
         self["saved"] = True
 
@@ -137,7 +137,7 @@ class File(BaseFile):
             extra=extra,
             headers=headers,
         )
-        self["files"].append("%s/%s" % (upload_storage, name))
+        self["files"].append("{}/{}".format(upload_storage, name))
         return stored_file
 
     def encode(self) -> Dict[str, Any]:

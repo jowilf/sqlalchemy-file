@@ -34,7 +34,7 @@ class Attachment(Base):
     multiple_content = Column(FileField(multiple=True))
 
     def __repr__(self):
-        return "<Attachment: id %s ; name: %s; multiple_content %s>" % (
+        return "<Attachment: id {} ; name: {}; multiple_content {}>".format(
             self.id,
             self.name,
             self.multiple_content,
