@@ -60,7 +60,7 @@ This can be done by using [StorageManager.add_storage()][sqlalchemy_file.storage
 case of multiple storages)
 and the Apache Libcloud container which will be use for this storage.
 
-!!! note 
+!!! note
     The first added storage will be used as default storage
 
 ```Python hl_lines="3  23-25"

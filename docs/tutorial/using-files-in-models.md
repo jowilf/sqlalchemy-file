@@ -13,14 +13,14 @@ You can use two Column type in your model.
     ```Python
     from sqlalchemy import Column, Integer, String, create_engine
     from sqlalchemy.ext.declarative import declarative_base
-    
+
     from sqlalchemy_file import FileField
-    
+
     Base = declarative_base()
 
     class Attachment(Base):
         __tablename__ = "attachment"
-    
+
         id = Column(Integer, autoincrement=True, primary_key=True)
         name = Column(String(50), unique=True)
         content = Column(FileField)
@@ -34,20 +34,20 @@ uploaded file is a valid image.
     using  [FileField][sqlalchemy_file.types.FileField]
     with [ImageValidator][sqlalchemy_file.validators.ImageValidator] and
     [ThumbnailGenerator][sqlalchemy_file.processors.ThumbnailGenerator]
-    
+
 
 !!! example
     ```Python
     from sqlalchemy import Column, Integer, String
     from sqlalchemy.ext.declarative import declarative_base
     from sqlalchemy_file import ImageField
-    
+
     Base = declarative_base()
-    
-    
+
+
     class Book(Base):
         __tablename__ = "book"
-    
+
         id = Column(Integer, autoincrement=True, primary_key=True)
         title = Column(String(100), unique=True)
         cover = Column(ImageField(thumbnail_size=(128, 128)))
@@ -88,7 +88,7 @@ information will be stored on the database as JSON.
 ### Retrieve file object
 
 This is the same [File][sqlalchemy_file.file.File] object you will get back when reloading the models from database and the file itself is accessible
-through the `.file` property. 
+through the `.file` property.
 
 !!! note
     Check the [File][sqlalchemy_file.file.File] documentation for all default attributes save into the database.
@@ -115,7 +115,7 @@ the default attributes used by [File][sqlalchemy_file.file.File] object internal
 
 !!! Example
     ```python
-    content = File(open("./example.txt", "rb"),custom_key1="custom_value1", custom_key2="custom_value2") 
+    content = File(open("./example.txt", "rb"),custom_key1="custom_value1", custom_key2="custom_value2")
     content["custom_key3"] = "custom_value3"
     attachment = Attachment(name="Dummy", content=content)
 
@@ -123,18 +123,18 @@ the default attributes used by [File][sqlalchemy_file.file.File] object internal
     session.commit()
     session.refresh(attachment)
 
-    assert attachment.custom_key1 == "custom_value1" 
+    assert attachment.custom_key1 == "custom_value1"
     assert attachment.custom_key2 == "custom_value2"
     assert attachment["custom_key3"] == "custom_value3"
     ```
 
 !!! important
-    [File][sqlalchemy_file.file.File] provides also attribute style access. 
+    [File][sqlalchemy_file.file.File] provides also attribute style access.
     You can access your keys as attributes.
 
 ### Extra & Headers
 
-`Apache-libcloud` allow you to store each object with some `extra` attributes or additional `headers`. 
+`Apache-libcloud` allow you to store each object with some `extra` attributes or additional `headers`.
 
 They are two ways to add `extra` and `headers` with *sqlalchemy-file*
 
@@ -177,14 +177,14 @@ with Session(engine) as session:
     session.add(attachment)
     session.commit()
     session.refresh(attachment)
-    
+
     assert attachment.content.file.object.extra["acl"] == "public-read"
 ```
 ### Metadata
 
 !!! warning
     This attribute is now deprecated, migrate to [extra](#extra-headers)
-    
+
 *SQLAlchemy-file* store the uploaded file with some metadata. Only `filename` and `content_type` are sent by default,
 . You can complete with `metadata` key inside your [File][sqlalchemy_file.file.File] object.
 
@@ -252,12 +252,12 @@ class AttachmentMinIO(Base):
 
 File validators get executed just before saving the uploaded file.
 
-They can raise [ValidationError][sqlalchemy_file.exceptions.ValidationError] when 
+They can raise [ValidationError][sqlalchemy_file.exceptions.ValidationError] when
 the uploaded files are not compliant with the validator conditions.
 
 Multiple validators can be chained together to validate one file.
 
-Validators can add additional properties to the file object. For example 
+Validators can add additional properties to the file object. For example
 [ImageValidator][sqlalchemy_file.validators.ImageValidator] add `width` and `height` to
 the file object.
 
@@ -274,16 +274,16 @@ Built-in validators:
     ```Python
     from sqlalchemy import Column, Integer, String
     from sqlalchemy.ext.declarative import declarative_base
-    
+
     from sqlalchemy_file import FileField
     from sqlalchemy_file.validators import ContentTypeValidator, SizeValidator
-    
+
     Base = declarative_base()
-    
-    
+
+
     class Attachment(Base):
         __tablename__ = "attachment"
-    
+
         id = Column(Integer, autoincrement=True, primary_key=True)
         name = Column(String(50), unique=True)
         content = Column(
@@ -297,15 +297,15 @@ Built-in validators:
     ```
 
 ## Processors
-File processors get executed just after saving the uploaded file. They can be use 
+File processors get executed just after saving the uploaded file. They can be use
 to generate additional files and attach it to the column. For example, [ThumbnailGenerator][sqlalchemy_file.processors.ThumbnailGenerator]
 generate thumbnail from original image.
 
 Multiple processors can be chained together. They will be executed in order.
 
 
-Processors can add additional properties to the file object. For example 
-[ThumbnailGenerator][sqlalchemy_file.processors.ThumbnailGenerator] add generated 
+Processors can add additional properties to the file object. For example
+[ThumbnailGenerator][sqlalchemy_file.processors.ThumbnailGenerator] add generated
 `thumbnail` file information into the file object.
 
 !!! example
@@ -314,13 +314,13 @@ Processors can add additional properties to the file object. For example
     from sqlalchemy.ext.declarative import declarative_base
     from sqlalchemy_file import ImageField
     from sqlalchemy_file.processors import ThumbnailGenerator
-    
+
     Base = declarative_base()
-    
-    
+
+
     class Book(Base):
         __tablename__ = "book"
-    
+
         id = Column(Integer, autoincrement=True, primary_key=True)
         title = Column(String(100), unique=True)
         cover = Column(ImageField(processors=[ThumbnailGenerator()]))
@@ -336,30 +336,30 @@ The best way to handle multiple files, is to use SQLAlchemy relationships
     from sqlalchemy.ext.declarative import declarative_base
     from sqlalchemy.orm import relationship
     from sqlalchemy_file import FileField
-    
+
     Base = declarative_base()
-    
-    
+
+
     class Attachment(Base):
         __tablename__ = "attachment"
-    
+
         id = Column(Integer, autoincrement=True, primary_key=True)
         name = Column(String(50), unique=True)
         content = Column(FileField)
-    
+
         article_id = Column(Integer, ForeignKey("article.id"))
-    
-    
+
+
     class Article(Base):
         __tablename__ = "article"
-    
+
         id = Column(Integer, autoincrement=True, primary_key=True)
         title = Column(String(100), unique=True)
-    
+
         attachments = relationship(Attachment, cascade="all, delete-orphan")
     ```
 
-However, if you want to save multiple files directly in your model, set 
+However, if you want to save multiple files directly in your model, set
 `multiple=True` on field declaration:
 
 ```Python hl_lines="18 36-45"
@@ -418,5 +418,5 @@ is a list of [File][sqlalchemy_file.file.File] object.
 
 ## Session Awareness
 
-Whenever an object is deleted or a rollback is performed the files uploaded during the unit of work or attached to 
+Whenever an object is deleted or a rollback is performed the files uploaded during the unit of work or attached to
 the deleted objects are automatically deleted.

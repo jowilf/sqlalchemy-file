@@ -33,7 +33,7 @@ class Attachment(Base):
     )
 
     def __repr__(self):
-        return "<Attachment: id %s ; name: %s; content %s; multiple_content %s>" % (
+        return "<Attachment: id {} ; name: {}; content {}; multiple_content {}>".format(
             self.id,
             self.name,
             self.content,

@@ -125,5 +125,5 @@ with Session(engine) as session:
 * [filedepot: ](https://github.com/amol-/depot) When I was looking for a library like this, depot was the
 best I saw. This project inspired **SQLAlchemy-file** extensively
 and some features are implemented the same.
-* [sqlalchemy-media: ](https://github.com/pylover/sqlalchemy-media) Another attachment extension for SqlAlchemy 
+* [sqlalchemy-media: ](https://github.com/pylover/sqlalchemy-media) Another attachment extension for SqlAlchemy
 to manage assets which are associated with database models

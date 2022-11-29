@@ -2,9 +2,8 @@ import os
 from typing import Generator, List, Optional, Union
 
 import uvicorn
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Form, Path, UploadFile
 from fastapi import File as FormFile
-from fastapi import Form, Path, UploadFile
 from libcloud.storage.drivers.local import LocalStorageDriver
 from libcloud.storage.providers import get_driver
 from libcloud.storage.types import (
@@ -122,7 +121,7 @@ async def create_new(
         session.refresh(category)
         return category
     except ValidationError as e:
-        return JSONResponse(dict(error={"key": e.key, "msg": e.msg}), status_code=422)
+        return JSONResponse({"error": {"key": e.key, "msg": e.msg}}, status_code=422)
 
 
 @app.get("/medias/{storage}/{file_id}", response_class=FileResponse)

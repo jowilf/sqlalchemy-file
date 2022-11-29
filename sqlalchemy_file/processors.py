@@ -135,7 +135,7 @@ class ThumbnailGenerator(Processor):
                     "width": width,
                     "height": height,
                     "upload_storage": upload_storage,
-                    "path": "%s/%s" % (upload_storage, stored_file.name),
+                    "path": "{}/{}".format(upload_storage, stored_file.name),
                     "url": stored_file.get_cdn_url(),
                 }
             }

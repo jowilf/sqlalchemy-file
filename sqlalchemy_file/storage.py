@@ -30,7 +30,7 @@ class StorageManager:
     def set_default(cls, name: str) -> None:
         """Replaces the current application default storage"""
         if name not in cls._storages:
-            raise RuntimeError("%s storage has not been added" % (name,))
+            raise RuntimeError("{} storage has not been added".format(name))
         cls._default_storage_name = name
 
     @classmethod
@@ -45,7 +45,7 @@ class StorageManager:
         """Add new storage"""
         assert isinstance(container, Container), "Invalid container"
         if name in cls._storages:
-            raise RuntimeError("Storage %s has already been added" % (name,))
+            raise RuntimeError("Storage {} has already been added".format(name))
         if cls._default_storage_name is None:
             cls._default_storage_name = name
         cls._storages[name] = container
@@ -62,7 +62,7 @@ class StorageManager:
             name = cls._default_storage_name
         if name in cls._storages:
             return cls._storages[name]
-        raise RuntimeError("%s storage has not been added" % (name,))
+        raise RuntimeError("{} storage has not been added".format(name))
 
     @classmethod
     def save_file(

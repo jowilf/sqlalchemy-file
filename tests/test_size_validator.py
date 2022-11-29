@@ -39,7 +39,7 @@ class Attachment(Base):
     content = Column(FileField(validators=[SizeValidator("5K")]))
 
     def __repr__(self):
-        return "<Attachment: id %s ; name: %s; content %s>" % (
+        return "<Attachment: id {} ; name: {}; content {}>".format(
             self.id,
             self.name,
             self.content,

@@ -35,15 +35,15 @@ Before adding a storage, the first thing you need is to setup an apache libcloud
     from libcloud.storage.types import Provider
     from libcloud.storage.types import ContainerAlreadyExistsError
     from libcloud.storage.providers import get_driver
-    
+
     cls = get_driver(Provider.MINIO)
     driver = cls("api key", "api secret key", secure=False, host="127.0.0.1", port=9000)
-    
+
     try:
         driver.create_container(container_name="attachment")
     except ContainerAlreadyExistsError:
         pass
-    
+
     my_container = driver.get_container(container_name="attachment")
 
     ```
@@ -52,10 +52,10 @@ Before adding a storage, the first thing you need is to setup an apache libcloud
     ```Python
     from libcloud.storage.providers import get_driver
     from libcloud.storage.types import Provider
-    
+
     cls = get_driver(Provider.S3)
     driver = cls("api key", "api secret key")
-    
+
     my_container = driver.get_container(container_name="attachment")
 
     ```
@@ -66,9 +66,9 @@ Then, you can easily add your container to the storage manager
 !!! example
 
     ```Python
-    
+
     from sqlalchemy_file.storage import StorageManager
-    
+
     StorageManager.add_storage("default", my_container)
     ```
 

@@ -40,7 +40,7 @@ class Book(Base):
     )  # will add thumbnail generator
 
     def __repr__(self):
-        return "<Book: id %s ; name: %s; cover %s;>" % (
+        return "<Book: id {} ; name: {}; cover {};>".format(
             self.id,
             self.title,
             self.cover,
