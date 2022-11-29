@@ -8,7 +8,6 @@ readme = "README.md"
 homepage = "https://jowilf.github.io/sqlalchemy-file"
 repository = "https://github.com/jowilf/sqlalchemy-file"
 documentation = "https://jowilf.github.io/sqlalchemy-file"
-changelog = "https://jowilf.github.io/sqlalchemy-file/changelog/"
 keywords = ["sqlalchemy", "sqlmodel", "file-upload", "apache-libcloud"]
 classifiers = [
     'Development Status :: 4 - Beta',
