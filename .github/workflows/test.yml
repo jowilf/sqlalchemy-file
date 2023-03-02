@@ -61,19 +61,19 @@ jobs:
           ENGINE: 'sqlite:///test.db?check_same_thread=False'
           STORAGE_PROVIDER: 'LOCAL'
           LOCAL_PATH: '/tmp/storage'
-        run: hatch run test:all
+        run: hatch run test:run
       - name: Test Local Storage provider & postgresql
         env:
           ENGINE: 'postgresql+psycopg2://username:password@localhost:5432/test_db'
           STORAGE_PROVIDER: 'LOCAL'
           LOCAL_PATH: '/tmp/storage'
-        run: hatch run test:all
+        run: hatch run test:run
       - name: Test Local Storage provider & mysql
         env:
           ENGINE: 'mysql+pymysql://username:password@localhost:3306/test_db'
           STORAGE_PROVIDER: 'LOCAL'
           LOCAL_PATH: '/tmp/storage'
-        run: hatch run test:all
+        run: hatch run test:run
       - name: Test Minio Storage provider & sqlite memory
         env:
           ENGINE: 'sqlite:///:memory:?check_same_thread=False'
@@ -83,7 +83,7 @@ jobs:
           MINIO_HOST: 'localhost'
           MINIO_PORT: 9000
           MINIO_SECURE: false
-        run: hatch run test:all
+        run: hatch run test:run
       - name: Coverage Report
         run: hatch run test:cov
       - name: Upload coverage

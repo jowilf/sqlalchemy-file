@@ -351,8 +351,8 @@ class FileFieldSessionTracker:
 
     @classmethod
     def setup(cls) -> None:
-        event.listen(orm.mapper, "mapper_configured", cls._mapper_configured)
-        event.listen(orm.mapper, "after_configured", cls._after_configured)
+        event.listen(orm.Mapper, "mapper_configured", cls._mapper_configured)
+        event.listen(orm.Mapper, "after_configured", cls._after_configured)
         event.listen(Session, "after_commit", cls._after_commit)
         event.listen(Session, "after_soft_rollback", cls._after_soft_rollback)
 
