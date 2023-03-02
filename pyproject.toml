@@ -105,6 +105,7 @@ matrix.sqla_version.dependencies = [
 ]
 matrix.sqla_version.scripts = [
     { key = "run", value = 'coverage run -m pytest tests --ignore=tests/test_sqlmodel.py', if = ["2.0.x"] },
+    { key = "cov", value = '', if = ["2.0.x"] },
 ]
 
 [tool.hatch.envs.docs]
