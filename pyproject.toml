@@ -148,6 +148,7 @@ known-third-party = ["sqlalchemy_file"]
 
 [tool.mypy]
 strict = true
+warn_unused_ignores = false
 
 [tool.hatch.build.targets.wheel]
 [tool.hatch.build.targets.sdist]

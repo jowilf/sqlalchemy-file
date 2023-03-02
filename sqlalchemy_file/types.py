@@ -190,9 +190,7 @@ class FileFieldSessionTracker:
         session._old_files.update(paths)  # type: ignore
 
     @classmethod
-    def extract_files_from_history(
-        cls, data: List[Union[MutableList[File], File]]
-    ) -> List[str]:
+    def extract_files_from_history(cls, data: Union[Tuple[()], List[Any]]) -> List[str]:
         paths = []
         for item in data:
             if isinstance(item, list):
@@ -202,7 +200,7 @@ class FileFieldSessionTracker:
         return paths
 
     @classmethod
-    def _mapper_configured(cls, mapper: Mapper, class_: Any) -> None:
+    def _mapper_configured(cls, mapper: Mapper, class_: Any) -> None:  # type: ignore[type-arg]
         """Detect and listen all class with FileField Column"""
         for mapper_property in mapper.iterate_properties:
             if isinstance(mapper_property, ColumnProperty) and isinstance(
@@ -238,7 +236,7 @@ class FileFieldSessionTracker:
         cls.clear_session(session)
 
     @classmethod
-    def _after_delete(cls, mapper: Mapper, _: Connection, obj: Any) -> None:
+    def _after_delete(cls, mapper: Mapper, _: Connection, obj: Any) -> None:  # type: ignore[type-arg]
         """
         After delete mark all linked files as old in order to delete
         them when after session is committed
@@ -256,7 +254,7 @@ class FileFieldSessionTracker:
                 )
 
     @classmethod
-    def _after_update(cls, mapper: Mapper, _: Connection, obj: Any) -> None:
+    def _after_update(cls, mapper: Mapper, _: Connection, obj: Any) -> None:  # type: ignore[type-arg]
         """
         After update, mark all edited files as old
         in order to delete them when after session is committed
@@ -269,7 +267,7 @@ class FileFieldSessionTracker:
             )
 
     @classmethod
-    def _before_update(cls, mapper: Mapper, _: Connection, obj: Any) -> None:
+    def _before_update(cls, mapper: Mapper, _: Connection, obj: Any) -> None:  # type: ignore[type-arg]
         """
         Before updating values, validate and save files. For multiple fields,
         mark all removed files as old, as _removed attribute will be
@@ -292,7 +290,7 @@ class FileFieldSessionTracker:
                     cls.add_old_files_to_session(session, [f["path"] for f in _removed])
 
     @classmethod
-    def _before_insert(cls, mapper: Mapper, _: Connection, obj: Any) -> None:
+    def _before_insert(cls, mapper: Mapper, _: Connection, obj: Any) -> None:  # type: ignore[type-arg]
         """Before inserting values, mark all created files as new. They will be
         automatically removed when session rollback"""
 
@@ -308,7 +306,7 @@ class FileFieldSessionTracker:
 
     @classmethod
     def prepare_file_attr(
-        cls, mapper: Mapper, obj: Any, key: str
+        cls, mapper: Mapper, obj: Any, key: str  # type: ignore[type-arg]
     ) -> Tuple[bool, Union[File, List[File]]]:
         """
         Prepare file before saved to database, convert bytes and string,
@@ -320,7 +318,7 @@ class FileFieldSessionTracker:
         or when new items is added for multiple field"""
         changed = False
 
-        column_type = mapper.attrs.get(key).columns[0].type
+        column_type = mapper.attrs.get(key).columns[0].type  # type: ignore[misc,union-attr]
         assert isinstance(column_type, FileField)
         upload_type = column_type.upload_type
 
