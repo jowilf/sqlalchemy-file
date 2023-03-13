@@ -1,3 +1,4 @@
+import os.path
 import uuid
 import warnings
 from datetime import datetime
@@ -41,11 +42,14 @@ class File(BaseFile):
 
     def __init__(
         self,
-        content: Any,
+        content: Any = None,
+        content_path: Optional[str] = None,
         filename: Optional[str] = None,
         content_type: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
+        if content is None and content_path is None:
+            raise ValueError("Either content or content_path must be specified")
         super().__init__(**kwargs)
         if isinstance(content, dict):
             object.__setattr__(self, "original_content", None)
@@ -53,8 +57,15 @@ class File(BaseFile):
             self.update(content)
             self._freeze()
         else:
-            self.original_content = get_content_from_file_obj(content)
-            filename = filename or get_filename_from_fileob(content)
+            self.content_path = content_path
+            if content is None:
+                self.original_content = None
+                filename = filename or os.path.basename(content_path)
+                size = os.path.getsize(content_path)
+            else:
+                self.original_content = get_content_from_file_obj(content)
+                filename = filename or get_filename_from_fileob(content)
+                size = get_content_size_from_fileobj(self.original_content)
             content_type = content_type or get_content_type_from_fileobj(
                 content, filename
             )
@@ -62,7 +73,7 @@ class File(BaseFile):
                 {
                     "filename": filename,
                     "content_type": content_type,
-                    "size": get_content_size_from_fileobj(self.original_content),
+                    "size": size,
                     "files": [],
                 }
             )
@@ -104,6 +115,7 @@ class File(BaseFile):
         )
         stored_file = self.store_content(
             self.original_content,
+            self.content_path,
             upload_storage,
             extra=extra,
             headers=self.get("headers", None),
@@ -118,6 +130,7 @@ class File(BaseFile):
     def store_content(
         self,
         content: Any,
+        content_path: Optional[str] = None,
         upload_storage: Optional[str] = None,
         name: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
@@ -132,6 +145,7 @@ class File(BaseFile):
         stored_file = StorageManager.save_file(
             name=name,
             content=content,
+            content_path=content_path,
             upload_storage=upload_storage,
             metadata=metadata,
             extra=extra,
