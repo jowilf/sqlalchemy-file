@@ -46,7 +46,7 @@ test = [
     "pytest >=7.2.0, <7.3.0",
     "mypy ==1.1.1",
     "ruff ==0.0.253",
-    "black ==23.1.0",
+    "black ==23.3.0",
     "coverage >=7.0.0, <7.3.0",
     "fasteners ==0.18",
     "PyMySQL[rsa] >=1.0.2, <1.1.0",
