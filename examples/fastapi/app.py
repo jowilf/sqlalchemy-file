@@ -28,8 +28,8 @@ from fastapi import File as FormFile
 
 engine = create_engine("sqlite:///example.db?check_same_thread=False", echo=True)
 
-os.makedirs("/tmp/storage", 0o777, exist_ok=True)
-driver = get_driver(Provider.LOCAL)("/tmp/storage")
+os.makedirs("./upload_dir", 0o777, exist_ok=True)
+driver = get_driver(Provider.LOCAL)("./upload_dir")
 
 # cls = get_driver(Provider.MINIO)
 # driver = cls("minioadmin", "minioadmin", secure=False, host="127.0.0.1", port=9000)
