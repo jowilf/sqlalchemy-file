@@ -6,7 +6,11 @@ from sqlalchemy.orm import ColumnProperty, Mapper, Session, SessionTransaction
 from sqlalchemy.orm.attributes import get_history
 from sqlalchemy_file.file import File
 from sqlalchemy_file.mutable_list import MutableList
-from sqlalchemy_file.processors import Processor, ThumbnailGenerator
+from sqlalchemy_file.processors import (
+    Processor,
+    ThumbnailGenerator,
+    ThumbnailsGenerator,
+)
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.validators import ImageValidator, Validator
 
@@ -118,6 +122,7 @@ class ImageField(FileField):
         *args: Tuple[Any],
         upload_storage: Optional[str] = None,
         thumbnail_size: Optional[Tuple[int, int]] = None,
+        thumbnails_sizes: Optional[Tuple[Tuple[int, int]]] = None,
         image_validator: Optional[ImageValidator] = None,
         validators: Optional[List[Validator]] = None,
         processors: Optional[List[Processor]] = None,
@@ -135,6 +140,9 @@ class ImageField(FileField):
             thumbnail_size: If set, a thumbnail will be generated
                 from original image using [ThumbnailGenerator]
                 [sqlalchemy_file.processors.ThumbnailGenerator]
+            thumbnails_sizes: If set, thumbnails will be generated
+                from original image using [ThumbnailsGenerator]
+                [sqlalchemy_file.processors.ThumbnailsGenerator]
             validators: List of additional validators to apply
             processors: List of validators to apply
             upload_type: File class to use, could be
@@ -150,6 +158,10 @@ class ImageField(FileField):
             if processors is None:
                 processors = []
             processors.append(ThumbnailGenerator(thumbnail_size))
+        if thumbnails_sizes is not None:
+            if processors is None:
+                processors = []
+            processors.append(ThumbnailsGenerator(thumbnails_sizes))
         validators.append(image_validator)
         super().__init__(
             *args,
