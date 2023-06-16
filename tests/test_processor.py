@@ -30,6 +30,13 @@ def fake_image():
     return file
 
 
+THUMBNAILS_SIZES = (
+    (32, 32),
+    (64, 64),
+    (128, 128),
+)
+
+
 class Book(Base):
     __tablename__ = "book"
 
@@ -38,20 +45,35 @@ class Book(Base):
     cover = Column(
         ImageField(thumbnail_size=(128, 128))
     )  # will add thumbnail generator
+    cover_multi = Column(
+        ImageField(thumbnails_sizes=THUMBNAILS_SIZES)
+    )  # will add thumbnails generator
 
     def __repr__(self):
-        return "<Book: id {} ; name: {}; cover {};>".format(
+        return "<Book: id {} ; name: {}; cover {}; cover_multi {}>".format(
             self.id,
             self.title,
             self.cover,
+            self.cover_multi,
         )  # pragma: no cover
 
 
-class TestThumbnailGenerator:
+class BaseThumbnailGenerator:
     def setup_method(self, method) -> None:
         Base.metadata.create_all(engine)
         StorageManager._clear()
         StorageManager.add_storage("test", get_test_container("test-processor"))
+
+    def teardown_method(self, method):
+        for obj in StorageManager.get().list_objects():
+            obj.delete()
+        StorageManager.get().delete()
+        Base.metadata.drop_all(engine)
+
+
+class TestThumbnailGenerator(BaseThumbnailGenerator):
+    def setup_method(self, method) -> None:
+        super().setup_method(method)
 
     def test_create_image_with_thumbnail(self, fake_image) -> None:
         with Session(engine) as session:
@@ -71,7 +93,37 @@ class TestThumbnailGenerator:
             assert book.cover["thumbnail"]["height"] == thumbnail.height
 
     def teardown_method(self, method):
-        for obj in StorageManager.get().list_objects():
-            obj.delete()
-        StorageManager.get().delete()
-        Base.metadata.drop_all(engine)
+        super().teardown_method(method)
+
+
+class TestThumbnailsGenerator(BaseThumbnailGenerator):
+    def setup_method(self, method) -> None:
+        super().setup_method(method)
+
+    def test_create_image_with_thumbnails(self, fake_image) -> None:
+        with Session(engine) as session:
+            from PIL import Image
+
+            session.add(
+                Book(
+                    title="Pointless Meetings", cover=fake_image, cover_multi=fake_image
+                )
+            )
+            session.flush()
+            book = session.execute(
+                select(Book).where(Book.title == "Pointless Meetings")
+            ).scalar_one()
+            assert book.cover_multi["thumbnails"] is not None
+            for thumbnail_size in THUMBNAILS_SIZES:
+                thumbnail_data = book.cover_multi["thumbnails"][
+                    f"{thumbnail_size[0]}x{thumbnail_size[1]}"
+                ]
+                thumbnail = StorageManager.get_file(thumbnail_data["path"])
+                assert thumbnail is not None
+                thumbnail = Image.open(thumbnail)
+                assert thumbnail.width, thumbnail.height == thumbnail_size
+                assert thumbnail_data["width"] == thumbnail.width
+                assert thumbnail_data["height"] == thumbnail.height
+
+    def teardown_method(self, method):
+        super().teardown_method(method)
