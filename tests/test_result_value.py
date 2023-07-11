@@ -75,18 +75,19 @@ class TestResultValue:
             assert attachment.content.custom_key2 == "custom_value2"
 
     def test_file_additional_metadata_deprecated(self) -> None:
-        with pytest.warns(DeprecationWarning, match="metadata attribute is deprecated"):
-            with Session(engine) as session:
-                metadata = {"key1": "val1", "key2": "val2"}
-                content = File(DummyFile(), metadata=metadata)
-                attachment = Attachment(name="Additional metadata", content=content)
-                session.add(attachment)
-                session.commit()
-                attachment = session.execute(
-                    select(Attachment).where(Attachment.name == "Additional metadata")
-                ).scalar_one()
-                assert attachment.content.file.object.meta_data["key1"] == "val1"
-                assert attachment.content.file.object.meta_data["key2"] == "val2"
+        with pytest.warns(
+            DeprecationWarning, match="metadata attribute is deprecated"
+        ), Session(engine) as session:
+            metadata = {"key1": "val1", "key2": "val2"}
+            content = File(DummyFile(), metadata=metadata)
+            attachment = Attachment(name="Additional metadata", content=content)
+            session.add(attachment)
+            session.commit()
+            attachment = session.execute(
+                select(Attachment).where(Attachment.name == "Additional metadata")
+            ).scalar_one()
+            assert attachment.content.file.object.meta_data["key1"] == "val1"
+            assert attachment.content.file.object.meta_data["key2"] == "val2"
 
     def test_multiple_column_is_list_of_dictlike(self) -> None:
         with Session(engine) as session:

@@ -86,7 +86,7 @@ class TestMultipleField:
                 )
             ).scalar_one()
             paths = [p["path"] for p in attachment.multiple_content]
-            assert all([StorageManager.get_file(path) is not None for path in paths])
+            assert all(StorageManager.get_file(path) is not None for path in paths)
             session.rollback()
             for path in paths:
                 with pytest.raises(ObjectDoesNotExistError):

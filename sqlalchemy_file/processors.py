@@ -10,8 +10,7 @@ if TYPE_CHECKING:
 
 
 class Processor:
-    """
-    Interface that must be implemented by file processors.
+    """Interface that must be implemented by file processors.
     Can be used to add additional data to the stored file or change it.
     When file processors are run the file has already been stored.
 
@@ -21,21 +20,18 @@ class Processor:
     def process(
         self, file: "File", upload_storage: Optional[str] = None
     ) -> None:  # pragma: no cover
-        """
-        Should be overridden in inherited class
+        """Should be overridden in inherited class
         Parameters:
             file: [File][sqlalchemy_file.file.File] object,
                 Use file.original_content to access uploaded file
             upload_storage: pass this to
                 [file.store_content()][sqlalchemy_file.file.File.store_content]
-                to attach additional files to the original file
+                to attach additional files to the original file.
         """
-        pass
 
 
 class ThumbnailGenerator(Processor):
-    """
-    Generate thumbnail from original content.
+    """Generate thumbnail from original content.
 
     The default thumbnail format and size are `PNG@128x128`, those can be changed
     by giving custom `thumbnail_size` and `thumbnail_format`
@@ -135,7 +131,7 @@ class ThumbnailGenerator(Processor):
                     "width": width,
                     "height": height,
                     "upload_storage": upload_storage,
-                    "path": "{}/{}".format(upload_storage, stored_file.name),
+                    "path": f"{upload_storage}/{stored_file.name}",
                     "url": stored_file.get_cdn_url(),
                 }
             }

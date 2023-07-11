@@ -3,8 +3,9 @@ from typing import Any
 
 
 class BaseFile(typing.Dict[str, Any]):
-    """
-    Base class for file object. It keeps information on a content related to a specific storage.
+    """Base class for file object.
+
+    It keeps information on a content related to a specific storage.
     It is a specialized dictionary that provides also attribute style access,
     the dictionary parent permits easy encoding/decoding to JSON.
 

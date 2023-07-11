@@ -18,7 +18,8 @@ def get_metadata_file_obj(metadata: Dict[str, Any]) -> "SpooledTemporaryFile[byt
 
 
 def get_content_from_file_obj(fileobj: Any) -> Any:
-    """Provides a real file object from file content
+    """Provides a real file object from file content.
+
     Converts ``str`` and ``bytes`` to an actual file.
     """
     if isinstance(fileobj, (str, bytes)):
@@ -26,7 +27,7 @@ def get_content_from_file_obj(fileobj: Any) -> Any:
         f.write(fileobj.encode() if isinstance(fileobj, str) else fileobj)
         f.seek(0)
         return f
-    elif getattr(fileobj, "file", None) is not None:
+    if getattr(fileobj, "file", None) is not None:
         return fileobj.file
     return fileobj
 
@@ -34,7 +35,7 @@ def get_content_from_file_obj(fileobj: Any) -> Any:
 def get_filename_from_fileob(fileobj: Any) -> Any:
     if getattr(fileobj, "filename", None) is not None:
         return fileobj.filename
-    elif getattr(fileobj, "name", None) is not None:
+    if getattr(fileobj, "name", None) is not None:
         return os.path.basename(fileobj.name)
     return "unnamed"
 
@@ -66,7 +67,7 @@ def convert_size(size: Union[str, int]) -> int:
     # convert size to number of bytes ex: 1k -> 1000; 1Ki->1024
     if isinstance(size, int):
         return size
-    elif isinstance(size, str):
+    if isinstance(size, str):
         pattern = re.compile(r"^(\d+)\s*(k|([KM]i?))$")
         m = re.fullmatch(pattern, size)
         if m is None:
@@ -74,3 +75,4 @@ def convert_size(size: Union[str, int]) -> int:
         value, si, _ = m.groups()
         si_map = {"k": 1000, "K": 1000, "M": 1000**2, "Ki": 1024, "Mi": 1024**2}
         return int(value) * si_map[si]
+    return None

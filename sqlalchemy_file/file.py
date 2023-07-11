@@ -17,15 +17,14 @@ from sqlalchemy_file.validators import Validator
 
 
 class File(BaseFile):
-    """
-    Takes a file as content and uploads it to the appropriate storage
+    """Takes a file as content and uploads it to the appropriate storage
     according to the attached Column and file information into the
     database as JSON.
 
     Default attributes provided for all ``File`` include:
 
     Attributes:
-
+    ----------
         filename (str):  This is the name of the uploaded file
         file_id:   This is the generated UUID for the uploaded file
         upload_storage:   Name of the storage used to save the uploaded file
@@ -69,7 +68,7 @@ class File(BaseFile):
             self._thaw()
 
     def apply_validators(self, validators: List[Validator], key: str = "") -> None:
-        """Apply validators to current file"""
+        """Apply validators to current file."""
         for validator in validators:
             validator.process(self, key)
 
@@ -78,13 +77,13 @@ class File(BaseFile):
         processors: List[Processor],
         upload_storage: Optional[str] = None,
     ) -> None:
-        """Apply processors to current file"""
+        """Apply processors to current file."""
         for processor in processors:
             processor.process(self, upload_storage)
         self._freeze()
 
     def save_to_storage(self, upload_storage: Optional[str] = None) -> None:
-        """Save current file into provided `upload_storage`"""
+        """Save current file into provided `upload_storage`."""
         extra = self.get("extra", {})
         extra.update({"content_type": self.content_type})
 
@@ -93,6 +92,7 @@ class File(BaseFile):
             warnings.warn(
                 'metadata attribute is deprecated. Use extra={"meta_data": ...} instead',
                 DeprecationWarning,
+                stacklevel=1,
             )
             extra.update({"meta_data": metadata})
 
@@ -111,7 +111,7 @@ class File(BaseFile):
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
         self["uploaded_at"] = datetime.utcnow().isoformat()
-        self["path"] = "{}/{}".format(upload_storage, stored_file.name)
+        self["path"] = f"{upload_storage}/{stored_file.name}"
         self["url"] = stored_file.get_cdn_url()
         self["saved"] = True
 
@@ -125,7 +125,7 @@ class File(BaseFile):
         headers: Optional[Dict[str, str]] = None,
     ) -> StoredFile:
         """Store content into provided `upload_storage`
-        with additional `metadata`. Can be use by processors
+        with additional `metadata`. Can be used by processors
         to store additional files.
         """
         name = name or str(uuid.uuid4())
@@ -137,7 +137,7 @@ class File(BaseFile):
             extra=extra,
             headers=headers,
         )
-        self["files"].append("{}/{}".format(upload_storage, name))
+        self["files"].append(f"{upload_storage}/{name}")
         return stored_file
 
     def encode(self) -> Dict[str, Any]:
