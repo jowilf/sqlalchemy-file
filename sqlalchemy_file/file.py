@@ -24,7 +24,6 @@ class File(BaseFile):
     Default attributes provided for all ``File`` include:
 
     Attributes:
-    ----------
         filename (str):  This is the name of the uploaded file
         file_id:   This is the generated UUID for the uploaded file
         upload_storage:   Name of the storage used to save the uploaded file

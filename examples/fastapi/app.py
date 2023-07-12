@@ -133,7 +133,7 @@ async def serve_files(storage: str = Path(...), file_id: str = Path(...)):
             return FileResponse(
                 file.get_cdn_url(), media_type=file.content_type, filename=file.filename
             )
-        elif file.get_cdn_url() is not None:
+        elif file.get_cdn_url() is not None:  # noqa: RET505
             """If file has public url, redirect to this url"""
             return RedirectResponse(file.get_cdn_url())
         else:

@@ -88,7 +88,7 @@ def serve_files(storage, file_id):
                 mimetype=file.content_type,
                 download_name=file.filename,
             )
-        elif file.get_cdn_url() is not None:
+        elif file.get_cdn_url() is not None:  # noqa: RET505
             """If file has public url, redirect to this url"""
             return app.redirect(file.get_cdn_url())
         else:

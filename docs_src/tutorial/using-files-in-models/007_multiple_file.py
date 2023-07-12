@@ -29,14 +29,14 @@ engine = create_engine(
 )
 Base.metadata.create_all(engine)
 
-with Session(engine) as session:
+with Session(engine) as session, open("./example.txt", "rb") as file:
     session.add(
         Attachment(
             name="attachment1",
             multiple_content=[
                 "from str",
                 b"from bytes",
-                open("./example.txt", "rb"),
+                file,
                 File(
                     content="Hello World",
                     filename="hello.txt",
