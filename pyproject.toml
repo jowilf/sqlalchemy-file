@@ -156,6 +156,7 @@ select = [
     "W", # pycodestyle warnings
 ]
 ignore = ["E501", "B904", "B008", "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D205"]
+target-version = "py38"
 
 [tool.ruff.pydocstyle]
 convention = "google"
