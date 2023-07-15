@@ -59,13 +59,13 @@ class StoredFile(io.IOBase):
         )
 
     def close(self) -> None:
-        pass  # No need to close
+        pass  # No need to close;
 
     def seekable(self) -> bool:
-        return False  # Seeking is not supported
+        return False  # Seeking is not supported ; pragma: no cover
 
     def writable(self) -> bool:
-        return False  # Writing is not supported
+        return False  # Writing is not supported ; pragma: no cover
 
     def readable(self) -> bool:
-        return True  # Reading is supported
+        return True  # Reading is supported ; pragma: no cover

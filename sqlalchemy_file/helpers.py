@@ -65,8 +65,6 @@ def get_content_size_from_fileobj(file: Any) -> Any:
 
 def convert_size(size: Union[str, int]) -> int:
     # convert size to number of bytes ex: 1k -> 1000; 1Ki->1024
-    if isinstance(size, int):
-        return size
     if isinstance(size, str):
         pattern = re.compile(r"^(\d+)\s*(k|([KM]i?))$")
         m = re.fullmatch(pattern, size)
@@ -75,4 +73,4 @@ def convert_size(size: Union[str, int]) -> int:
         value, si, _ = m.groups()
         si_map = {"k": 1000, "K": 1000, "M": 1000**2, "Ki": 1024, "Mi": 1024**2}
         return int(value) * si_map[si]
-    return None
+    return size
