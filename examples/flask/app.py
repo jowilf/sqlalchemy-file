@@ -106,6 +106,13 @@ if __name__ == "__main__":
     os.makedirs("./upload_dir", 0o777, exist_ok=True)
     driver = get_driver(Provider.LOCAL)("./upload_dir")
 
+    """
+    Or with MinIO:
+
+    cls = get_driver(Provider.MINIO)
+    driver = cls("minioadmin", "minioadmin", secure=False, host="127.0.0.1", port=9000)
+    """
+
     with contextlib.suppress(ContainerAlreadyExistsError):
         driver.create_container(container_name="images")
 
