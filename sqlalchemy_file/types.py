@@ -85,7 +85,7 @@ class FileField(types.TypeDecorator):  # type: ignore
             raise ValueError(f"Expected {self.upload_type}, received: {type(value)}")
         if self.multiple and not (
             isinstance(value, list)
-            and all([isinstance(v, self.upload_type) for v in value])
+            and all(isinstance(v, self.upload_type) for v in value)
         ):  # pragma: no cover
             raise ValueError(
                 f"Expected MutableList[{self.upload_type}], received: {type(value)}"
