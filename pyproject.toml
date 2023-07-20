@@ -59,7 +59,7 @@ test = [
 ]
 doc = [
     "mkdocs-material >=9.0.0, <10.0.0",
-    "mkdocstrings[python] >=0.19.0, <0.21.0"
+    "mkdocstrings[python] >=0.19.0, <0.23.0"
 ]
 dev = [
     "pre-commit >=2.20.0, <4.0.0",
