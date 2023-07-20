@@ -2,7 +2,7 @@ from libcloud.storage.drivers.dummy import DummyFileObject as BaseDummyFileObjec
 
 
 class DummyFile(BaseDummyFileObject):
-    """Add size just for test purpose"""
+    """Add size just for test purpose."""
 
     def __init__(self, yield_count=5, chunk_len=10):
         super().__init__(yield_count, chunk_len)

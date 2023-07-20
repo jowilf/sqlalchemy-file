@@ -1,5 +1,6 @@
+import contextlib
 import warnings
-from typing import Any, Dict, Iterator, Optional
+from typing import Any, ClassVar, Dict, Iterator, Optional
 
 from libcloud.storage.base import Container
 from libcloud.storage.types import ObjectDoesNotExistError
@@ -8,8 +9,7 @@ from sqlalchemy_file.stored_file import StoredFile
 
 
 class StorageManager:
-    """
-    Takes care of managing the whole Storage environment for the application.
+    """Takes care of managing the whole Storage environment for the application.
 
     Use [add_storage][sqlalchemy_file.storage.StorageManager.add_storage] method
     to add new `libcloud.storage.base.Container`and associate a name which
@@ -23,46 +23,45 @@ class StorageManager:
 
     """
 
-    _default_storage_name: Optional[str] = None
-    _storages: Dict[str, Container] = {}
+    _default_storage_name: ClassVar[Optional[str]] = None
+    _storages: ClassVar[Dict[str, Container]] = {}
 
     @classmethod
     def set_default(cls, name: str) -> None:
-        """Replaces the current application default storage"""
+        """Replaces the current application default storage."""
         if name not in cls._storages:
-            raise RuntimeError("{} storage has not been added".format(name))
+            raise RuntimeError(f"{name} storage has not been added")
         cls._default_storage_name = name
 
     @classmethod
     def get_default(cls) -> str:
-        """Gets the current application default storage"""
+        """Gets the current application default storage."""
         if cls._default_storage_name is None:
             raise RuntimeError("No default storage has been added")
         return cls._default_storage_name
 
     @classmethod
     def add_storage(cls, name: str, container: Container) -> None:
-        """Add new storage"""
+        """Add new storage."""
         assert isinstance(container, Container), "Invalid container"
         if name in cls._storages:
-            raise RuntimeError("Storage {} has already been added".format(name))
+            raise RuntimeError(f"Storage {name} has already been added")
         if cls._default_storage_name is None:
             cls._default_storage_name = name
         cls._storages[name] = container
 
     @classmethod
     def get(cls, name: Optional[str] = None) -> Container:
-        """
-        Gets the container instance associate to the name,
-        return default if name isn't provided
+        """Gets the container instance associate to the name,
+        return default if name isn't provided.
         """
         if name is None and cls._default_storage_name is None:
             raise RuntimeError("No default storage have been added")
-        elif name is None:
+        if name is None:
             name = cls._default_storage_name
         if name in cls._storages:
             return cls._storages[name]
-        raise RuntimeError("{} storage has not been added".format(name))
+        raise RuntimeError(f"{name} storage has not been added")
 
     @classmethod
     def save_file(
@@ -78,6 +77,7 @@ class StorageManager:
             warnings.warn(
                 'metadata attribute is deprecated. Use extra={"meta_data": ...} instead',
                 DeprecationWarning,
+                stacklevel=1,
             )
             extra = {
                 "meta_data": metadata,
@@ -110,30 +110,28 @@ class StorageManager:
     @classmethod
     def get_file(cls, path: str) -> StoredFile:
         """Retrieve the file with `provided` path,
-        path is expected to be `storage_name/file_id`
+        path is expected to be `storage_name/file_id`.
         """
         upload_storage, file_id = path.split("/")
         return StoredFile(StorageManager.get(upload_storage).get_object(file_id))
 
     @classmethod
     def delete_file(cls, path: str) -> bool:
-        """Delete the file with `provided` path
-        path is expected to be `storage_name/file_id`
+        """Delete the file with `provided` path.
+
+        The path is expected to be `storage_name/file_id`.
         """
         upload_storage, file_id = path.split("/")
         obj = StorageManager.get(upload_storage).get_object(file_id)
         if obj.driver.name == LOCAL_STORAGE_DRIVER_NAME:
             """Try deleting associated metadata file"""
-            try:
+            with contextlib.suppress(ObjectDoesNotExistError):
                 obj.container.get_object(f"{obj.name}.metadata.json").delete()
-            except ObjectDoesNotExistError:
-                pass
+
         return obj.delete()
 
     @classmethod
     def _clear(cls) -> None:
-        """
-        This is only for testing pourposes, resets the StorageManager
-        """
+        """This is only for testing pourposes, resets the StorageManager."""
         cls._default_storage_name = None
         cls._storages = {}

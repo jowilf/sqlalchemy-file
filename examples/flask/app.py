@@ -1,3 +1,4 @@
+import contextlib
 import os
 
 from flask_sqlalchemy import SQLAlchemy
@@ -87,7 +88,7 @@ def serve_files(storage, file_id):
                 mimetype=file.content_type,
                 download_name=file.filename,
             )
-        elif file.get_cdn_url() is not None:
+        elif file.get_cdn_url() is not None:  # noqa: RET505
             """If file has public url, redirect to this url"""
             return app.redirect(file.get_cdn_url())
         else:
@@ -105,17 +106,18 @@ if __name__ == "__main__":
     os.makedirs("./upload_dir", 0o777, exist_ok=True)
     driver = get_driver(Provider.LOCAL)("./upload_dir")
 
-    # cls = get_driver(Provider.MINIO)
-    # driver = cls("minioadmin", "minioadmin", secure=False, host="127.0.0.1", port=9000)
+    """
+    Or with MinIO:
 
-    try:
+    cls = get_driver(Provider.MINIO)
+    driver = cls("minioadmin", "minioadmin", secure=False, host="127.0.0.1", port=9000)
+    """
+
+    with contextlib.suppress(ContainerAlreadyExistsError):
         driver.create_container(container_name="images")
-    except ContainerAlreadyExistsError:
-        pass
-    try:
+
+    with contextlib.suppress(ContainerAlreadyExistsError):
         driver.create_container(container_name="documents")
-    except ContainerAlreadyExistsError:
-        pass
 
     StorageManager.add_storage("images", driver.get_container(container_name="images"))
     StorageManager.add_storage(

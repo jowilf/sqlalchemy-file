@@ -15,8 +15,8 @@ if TYPE_CHECKING:
 
 
 class Validator:
-    """
-    Interface that must be implemented by file validators.
+    """Interface that must be implemented by file validators.
+
     File validators get executed before a file is stored on the database
     using one of the supported fields. Can be used to add additional data
     to file object or change it.
@@ -25,19 +25,17 @@ class Validator:
 
     @abstractmethod
     def process(self, file: "File", attr_key: str) -> None:  # pragma: no cover
-        """
-        Should be overridden in inherited class
+        """Should be overridden in inherited class.
 
         Parameters:
            file: [File][sqlalchemy_file.file.File] object
            attr_key: current SQLAlchemy column key. Can be passed to
                [ValidationError][sqlalchemy_file.exceptions.ValidationError]
         """
-        pass
 
 
 class SizeValidator(Validator):
-    """Validate file maximum size
+    """Validate file maximum size.
 
     Attributes:
         max_size:
@@ -56,6 +54,7 @@ class SizeValidator(Validator):
 
             For more information, view
             [Wikipedia: Binary prefix](https://en.wikipedia.org/wiki/Binary_prefix)
+
     Example:
         ```Python
         class Attachment(Base):
@@ -79,8 +78,7 @@ class SizeValidator(Validator):
         if file.size > convert_size(self.max_size):
             raise SizeValidationError(
                 attr_key,
-                "The file is too large (%s bytes). Allowed maximum size is %s."
-                % (file.size, self.max_size),
+                f"The file is too large ({file.size} bytes). Allowed maximum size is {self.max_size}.",
             )
 
 
@@ -119,13 +117,12 @@ class ContentTypeValidator(Validator):
         ):
             raise ContentTypeValidationError(
                 attr_key,
-                "File content_type %s is not allowed. Allowed content_types are: %s"
-                % (file.content_type, self.allowed_content_types),
+                f"File content_type {file.content_type} is not allowed. Allowed content_types are: {self.allowed_content_types}",
             )
 
 
 class ImageValidator(ContentTypeValidator):
-    """Default Validator for ImageField
+    """Default Validator for ImageField.
 
     Attributes:
         min_wh: Minimum allowed dimension (w, h).

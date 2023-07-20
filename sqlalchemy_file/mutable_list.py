@@ -7,8 +7,7 @@ T = TypeVar("T", bound=Any)
 
 
 class MutableList(Mutable, typing.List[T]):
-    """
-    A list type that implements :class:`Mutable`.
+    """A list type that implements :class:`Mutable`.
 
     The :class:`MutableList` object implements a list that will
     emit change events to the underlying mapping when the contents of
@@ -32,8 +31,7 @@ class MutableList(Mutable, typing.List[T]):
                 return MutableList(value)
             # this call will raise ValueError
             return Mutable.coerce(key, value)  # pragma: no cover
-        else:
-            return value  # pragma: no cover
+        return value  # pragma: no cover
 
     @no_type_check
     def __reduce_ex__(self, proto):  # pragma: no cover
@@ -50,20 +48,14 @@ class MutableList(Mutable, typing.List[T]):
 
     def __setitem__(self, index: Any, value: Any) -> None:
         """Detect list set events and emit change events."""
-        if isinstance(index, slice):
-            old_value = self[index]
-        else:
-            old_value = [self[index]]
+        old_value = self[index] if isinstance(index, slice) else [self[index]]
         list.__setitem__(self, index, value)
         self.changed()
         self._removed.extend(old_value)
 
     def __delitem__(self, index: Any) -> None:
         """Detect list del events and emit change events."""
-        if isinstance(index, slice):
-            old_value = self[index]
-        else:
-            old_value = [self[index]]
+        old_value = self[index] if isinstance(index, slice) else [self[index]]
         list.__delitem__(self, index)
         self.changed()
         self._removed.extend(old_value)

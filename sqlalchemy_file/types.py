@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
+from typing import Any, ClassVar, Dict, List, Optional, Set, Tuple, Type, Union
 
 from sqlalchemy import event, inspect, orm, types
 from sqlalchemy.engine import Connection, Dialect
@@ -12,9 +12,7 @@ from sqlalchemy_file.validators import ImageValidator, Validator
 
 
 class FileField(types.TypeDecorator):  # type: ignore
-
-    """
-    Provides support for storing attachments to **SQLAlchemy** models.
+    """Provides support for storing attachments to **SQLAlchemy** models.
 
     [FileField][sqlalchemy_file.types.FileField] can be used as a Column type to
     store files into the model. The actual file itself will be uploaded to a specific
@@ -34,7 +32,7 @@ class FileField(types.TypeDecorator):  # type: ignore
     """
 
     impl = types.JSON
-    cache_ok = True
+    cache_ok = False
 
     def __init__(
         self,
@@ -48,18 +46,17 @@ class FileField(types.TypeDecorator):  # type: ignore
         headers: Optional[Dict[str, str]] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
-        """
-        Parameters:
-              upload_storage: storage to use
-              validators: List of validators to apply
-              processors: List of validators to apply
-              upload_type: File class to use, could be
-                        used to set custom File class
-              multiple: Use this to save multiple files
-              extra: Extra attributes (driver specific)
-              headers: Additional request headers,
-                such as CORS headers. For example:
-                headers = {'Access-Control-Allow-Origin': 'http://mozilla.com'}
+        """Parameters:
+        upload_storage: storage to use
+        validators: List of validators to apply
+        processors: List of validators to apply
+        upload_type: File class to use, could be
+        used to set custom File class
+        multiple: Use this to save multiple files
+        extra: Extra attributes (driver specific)
+        headers: Additional request headers,
+        such as CORS headers. For example:
+        headers = {'Access-Control-Allow-Origin': 'http://mozilla.com'}.
         """
         super().__init__(*args, **kwargs)
         if processors is None:
@@ -85,7 +82,7 @@ class FileField(types.TypeDecorator):  # type: ignore
             raise ValueError(f"Expected {self.upload_type}, received: {type(value)}")
         if self.multiple and not (
             isinstance(value, list)
-            and all([isinstance(v, self.upload_type) for v in value])
+            and all(isinstance(v, self.upload_type) for v in value)
         ):  # pragma: no cover
             raise ValueError(
                 f"Expected MutableList[{self.upload_type}], received: {type(value)}"
@@ -111,7 +108,7 @@ class ImageField(FileField):
     but also validates that the uploaded object is a valid image.
     """
 
-    cache_ok = True
+    cache_ok = False
 
     def __init__(
         self,
@@ -127,20 +124,19 @@ class ImageField(FileField):
         headers: Optional[Dict[str, str]] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
-        """
-        Parameters:
-            upload_storage: storage to use
-            image_validator: ImageField use default image
-                  validator, Use this property to customize it.
-            thumbnail_size: If set, a thumbnail will be generated
-                from original image using [ThumbnailGenerator]
-                [sqlalchemy_file.processors.ThumbnailGenerator]
-            validators: List of additional validators to apply
-            processors: List of validators to apply
-            upload_type: File class to use, could be
-                        used to set custom File class
-            multiple: Use this to save multiple files
-            extra: Extra attributes (driver specific)
+        """Parameters
+        upload_storage: storage to use
+        image_validator: ImageField use default image
+        validator, Use this property to customize it.
+        thumbnail_size: If set, a thumbnail will be generated
+        from original image using [ThumbnailGenerator]
+        [sqlalchemy_file.processors.ThumbnailGenerator]
+        validators: List of additional validators to apply
+        processors: List of validators to apply
+        upload_type: File class to use, could be
+        used to set custom File class
+        multiple: Use this to save multiple files
+        extra: Extra attributes (driver specific).
         """
         if validators is None:
             validators = []
@@ -165,7 +161,7 @@ class ImageField(FileField):
 
 
 class FileFieldSessionTracker:
-    mapped_entities: Dict[Type[Any], List[str]] = {}
+    mapped_entities: ClassVar[Dict[Type[Any], List[str]]] = {}
 
     @classmethod
     def delete_files(cls, paths: Set[str], ctx: str) -> None:
@@ -201,7 +197,7 @@ class FileFieldSessionTracker:
 
     @classmethod
     def _mapper_configured(cls, mapper: Mapper, class_: Any) -> None:  # type: ignore[type-arg]
-        """Detect and listen all class with FileField Column"""
+        """Detect and listen all class with FileField Column."""
         for mapper_property in mapper.iterate_properties:
             if isinstance(mapper_property, ColumnProperty) and isinstance(
                 mapper_property.columns[0].type, FileField
@@ -217,7 +213,7 @@ class FileFieldSessionTracker:
 
     @classmethod
     def _after_configured(cls) -> None:
-        for entity in cls.mapped_entities.keys():
+        for entity in cls.mapped_entities:
             event.listen(entity, "before_insert", cls._before_insert)
             event.listen(entity, "before_update", cls._before_update)
             event.listen(entity, "after_update", cls._after_update)
@@ -225,21 +221,20 @@ class FileFieldSessionTracker:
 
     @classmethod
     def _after_commit(cls, session: Session) -> None:
-        """After commit, old files are automatically deleted"""
+        """After commit, old files are automatically deleted."""
         cls.delete_files(getattr(session, "_old_files", set()), "after_commit")
         cls.clear_session(session)
 
     @classmethod
     def _after_soft_rollback(cls, session: Session, _: SessionTransaction) -> None:
-        """After rollback, new files are automatically deleted"""
+        """After rollback, new files are automatically deleted."""
         cls.delete_files(getattr(session, "_new_files", set()), "after_soft_rollback")
         cls.clear_session(session)
 
     @classmethod
     def _after_delete(cls, mapper: Mapper, _: Connection, obj: Any) -> None:  # type: ignore[type-arg]
-        """
-        After delete mark all linked files as old in order to delete
-        them when after session is committed
+        """After delete mark all linked files as old in order to delete
+        them when after session is committed.
         """
         tracked_columns: List[str] = cls.mapped_entities.get(mapper.class_, [])
         for key in tracked_columns:
@@ -255,9 +250,8 @@ class FileFieldSessionTracker:
 
     @classmethod
     def _after_update(cls, mapper: Mapper, _: Connection, obj: Any) -> None:  # type: ignore[type-arg]
-        """
-        After update, mark all edited files as old
-        in order to delete them when after session is committed
+        """After update, mark all edited files as old
+        in order to delete them when after session is committed.
         """
         tracked_columns: List[str] = cls.mapped_entities.get(mapper.class_, [])
         for key in tracked_columns:
@@ -268,8 +262,7 @@ class FileFieldSessionTracker:
 
     @classmethod
     def _before_update(cls, mapper: Mapper, _: Connection, obj: Any) -> None:  # type: ignore[type-arg]
-        """
-        Before updating values, validate and save files. For multiple fields,
+        """Before updating values, validate and save files. For multiple fields,
         mark all removed files as old, as _removed attribute will be
         reinitialised after update.
         """
@@ -292,8 +285,8 @@ class FileFieldSessionTracker:
     @classmethod
     def _before_insert(cls, mapper: Mapper, _: Connection, obj: Any) -> None:  # type: ignore[type-arg]
         """Before inserting values, mark all created files as new. They will be
-        automatically removed when session rollback"""
-
+        automatically removed when session rollback.
+        """
         tracked_columns: List[str] = cls.mapped_entities.get(mapper.class_, [])
         for key in tracked_columns:
             value = getattr(obj, key)
@@ -308,14 +301,27 @@ class FileFieldSessionTracker:
     def prepare_file_attr(
         cls, mapper: Mapper, obj: Any, key: str  # type: ignore[type-arg]
     ) -> Tuple[bool, Union[File, List[File]]]:
-        """
-        Prepare file before saved to database, convert bytes and string,
-        saved file into the upload_storage, apply validators and processors
+        """Prepare file(s) for saving into the database by converting bytes or strings into
+        File objects, applying validators, uploading the file(s) to the upload storage,
+        and applying processors.
+
+        Arguments:
+            mapper (Mapper): The mapper instance associated with the object.
+            obj (Any): The object containing the file attribute.
+            key (str): The name of the file attribute.
+
+        Returns:
+            Tuple[bool, Union[File, List[File]]]: A tuple containing a boolean flag indicating
+            whether the file(s) were changed, and the prepared file object(s). If the column type
+            allows multiple files, the prepared file objects are returned as a list.
         """
         value = getattr(obj, key)
 
-        """Become True when it is new file for single field,
-        or when new items is added for multiple field"""
+        """
+        The `changed` flag becomes True in two cases:
+        1. For a single-field attribute, when a new file is assigned, replacing the previous file.
+        2. For a multiple-field attribute, when new file objects are added to the existing ones.
+        """
         changed = False
 
         column_type = mapper.attrs.get(key).columns[0].type  # type: ignore[misc,union-attr]
@@ -325,7 +331,7 @@ class FileFieldSessionTracker:
         prepared_values: List[File] = []
         for v in value if isinstance(value, list) else [value]:
             if not isinstance(v, upload_type):
-                v = upload_type(v)
+                v = upload_type(v)  # noqa: PLW2901
             if not getattr(v, "saved", False):
                 changed = True
                 v.apply_validators(column_type.validators, key)
