@@ -39,11 +39,7 @@ class Attachment(Base):
     content = Column(FileField(validators=[SizeValidator("5K")]))
 
     def __repr__(self):
-        return "<Attachment: id {} ; name: {}; content {}>".format(
-            self.id,
-            self.name,
-            self.content,
-        )  # pragma: no cover
+        return f"<Attachment: id {self.id} ; name: {self.name}; content {self.content}>"  # pragma: no cover
 
 
 class TestSizeValidator:
