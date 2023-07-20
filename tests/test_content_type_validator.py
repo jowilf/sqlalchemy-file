@@ -56,11 +56,7 @@ class Attachment(Base):
     )
 
     def __repr__(self):
-        return "<Attachment: id {} ; name: {}; content {}>".format(
-            self.id,
-            self.name,
-            self.content,
-        )  # pragma: no cover
+        return f"<Attachment: id {self.id} ; name: {self.name}; content {self.content}>"  # pragma: no cover
 
 
 class TestContentTypeValidator:
