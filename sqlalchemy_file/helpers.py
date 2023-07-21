@@ -4,7 +4,7 @@ import os
 import re
 from builtins import RuntimeError
 from tempfile import SpooledTemporaryFile
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Union
 
 INMEMORY_FILESIZE = 1024 * 1024
 LOCAL_STORAGE_DRIVER_NAME = "Local Storage"
@@ -74,3 +74,8 @@ def convert_size(size: Union[str, int]) -> int:
         si_map = {"k": 1000, "K": 1000, "M": 1000**2, "Ki": 1024, "Mi": 1024**2}
         return int(value) * si_map[si]
     return size
+
+
+def flatmap(lists: List[List[Any]]) -> List[Any]:
+    """Flattens a list of lists into a single list."""
+    return [value for _list in lists for value in _list]
