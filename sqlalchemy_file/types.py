@@ -5,6 +5,7 @@ from sqlalchemy.engine import Connection, Dialect
 from sqlalchemy.orm import ColumnProperty, Mapper, Session, SessionTransaction
 from sqlalchemy.orm.attributes import get_history
 from sqlalchemy_file.file import File
+from sqlalchemy_file.helpers import flatmap
 from sqlalchemy_file.mutable_list import MutableList
 from sqlalchemy_file.processors import Processor, ThumbnailGenerator
 from sqlalchemy_file.storage import StorageManager
@@ -190,10 +191,10 @@ class FileFieldSessionTracker:
         paths = []
         for item in data:
             if isinstance(item, list):
-                paths.extend([f["path"] for f in item])
+                paths.extend([f["files"] for f in item])
             elif isinstance(item, File):
-                paths.append(item["path"])
-        return paths
+                paths.append(item["files"])
+        return flatmap(paths)
 
     @classmethod
     def _mapper_configured(cls, mapper: Mapper, class_: Any) -> None:  # type: ignore[type-arg]
@@ -242,10 +243,12 @@ class FileFieldSessionTracker:
             if value is not None:
                 cls.add_old_files_to_session(
                     inspect(obj).session,
-                    [
-                        f["path"]
-                        for f in (value if isinstance(value, list) else [value])
-                    ],
+                    flatmap(
+                        [
+                            f["files"]
+                            for f in (value if isinstance(value, list) else [value])
+                        ]
+                    ),
                 )
 
     @classmethod
@@ -280,7 +283,9 @@ class FileFieldSessionTracker:
                     )
                 if isinstance(value, MutableList):
                     _removed = getattr(value, "_removed", ())
-                    cls.add_old_files_to_session(session, [f["path"] for f in _removed])
+                    cls.add_old_files_to_session(
+                        session, flatmap([f["files"] for f in _removed])
+                    )
 
     @classmethod
     def _before_insert(cls, mapper: Mapper, _: Connection, obj: Any) -> None:  # type: ignore[type-arg]

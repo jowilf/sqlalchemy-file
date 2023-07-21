@@ -2,6 +2,8 @@ import base64
 import tempfile
 
 import pytest
+from libcloud.storage.types import ObjectDoesNotExistError
+from PIL import Image
 from sqlalchemy import Column, Integer, String, select
 from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy_file.storage import StorageManager
@@ -51,8 +53,6 @@ class TestThumbnailGenerator:
 
     def test_create_image_with_thumbnail(self, fake_image) -> None:
         with Session(engine) as session:
-            from PIL import Image
-
             session.add(Book(title="Pointless Meetings", cover=fake_image))
             session.flush()
             book = session.execute(
@@ -65,6 +65,38 @@ class TestThumbnailGenerator:
             assert max(thumbnail.width, thumbnail.height) == 128
             assert book.cover["thumbnail"]["width"] == thumbnail.width
             assert book.cover["thumbnail"]["height"] == thumbnail.height
+
+    def test_update_image_with_thumbnail(self, fake_image) -> None:
+        with Session(engine) as session:
+            session.add(Book(title="Pointless Meetings", cover=fake_image))
+            session.commit()
+            book = session.execute(
+                select(Book).where(Book.title == "Pointless Meetings")
+            ).scalar_one()
+            old_file_id = book.cover.path
+            old_thumbnail_file_id = book.cover.thumbnail["path"]
+            book.cover = fake_image
+            session.commit()
+            with pytest.raises(ObjectDoesNotExistError):
+                assert StorageManager.get_file(old_file_id)
+            with pytest.raises(ObjectDoesNotExistError):
+                assert StorageManager.get_file(old_thumbnail_file_id)
+
+    def test_delete_image_with_thumbnail(self, fake_image) -> None:
+        with Session(engine) as session:
+            session.add(Book(title="Pointless Meetings", cover=fake_image))
+            session.commit()
+            book = session.execute(
+                select(Book).where(Book.title == "Pointless Meetings")
+            ).scalar_one()
+            old_file_id = book.cover.path
+            old_thumbnail_file_id = book.cover.thumbnail["path"]
+            session.delete(book)
+            session.commit()
+            with pytest.raises(ObjectDoesNotExistError):
+                assert StorageManager.get_file(old_file_id)
+            with pytest.raises(ObjectDoesNotExistError):
+                assert StorageManager.get_file(old_thumbnail_file_id)
 
     def teardown_method(self, method):
         for obj in StorageManager.get().list_objects():
