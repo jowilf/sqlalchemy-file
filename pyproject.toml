@@ -31,7 +31,7 @@ classifiers = [
 ]
 dependencies = [
     "SQLAlchemy >=1.4, <2.1",
-    "apache-libcloud >=3.6, <3.8",
+    "apache-libcloud >=3.6, <3.9",
 ]
 dynamic = ["version"]
 
