@@ -1,3 +1,4 @@
+import os.path
 import uuid
 import warnings
 from datetime import datetime
@@ -39,11 +40,14 @@ class File(BaseFile):
 
     def __init__(
         self,
-        content: Any,
+        content: Any = None,
         filename: Optional[str] = None,
         content_type: Optional[str] = None,
+        content_path: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
+        if content is None and content_path is None:
+            raise ValueError("Either content or content_path must be specified")
         super().__init__(**kwargs)
         if isinstance(content, dict):
             object.__setattr__(self, "original_content", None)
@@ -51,8 +55,15 @@ class File(BaseFile):
             self.update(content)
             self._freeze()
         else:
-            self.original_content = get_content_from_file_obj(content)
-            filename = filename or get_filename_from_fileob(content)
+            self.content_path = content_path
+            if content is None:
+                self.original_content = None
+                filename = filename or os.path.basename(content_path)
+                size = os.path.getsize(content_path)
+            else:
+                self.original_content = get_content_from_file_obj(content)
+                filename = filename or get_filename_from_fileob(content)
+                size = get_content_size_from_fileobj(self.original_content)
             content_type = content_type or get_content_type_from_fileobj(
                 content, filename
             )
@@ -60,7 +71,7 @@ class File(BaseFile):
                 {
                     "filename": filename,
                     "content_type": content_type,
-                    "size": get_content_size_from_fileobj(self.original_content),
+                    "size": size,
                     "files": [],
                 }
             )
@@ -106,6 +117,7 @@ class File(BaseFile):
             upload_storage,
             extra=extra,
             headers=self.get("headers", None),
+            content_path=self.content_path,
         )
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
@@ -122,6 +134,7 @@ class File(BaseFile):
         metadata: Optional[Dict[str, Any]] = None,
         extra: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
+        content_path: Optional[str] = None,
     ) -> StoredFile:
         """Store content into provided `upload_storage`
         with additional `metadata`. Can be used by processors
@@ -135,6 +148,7 @@ class File(BaseFile):
             metadata=metadata,
             extra=extra,
             headers=headers,
+            content_path=content_path,
         )
         self["files"].append(f"{upload_storage}/{name}")
         return stored_file
