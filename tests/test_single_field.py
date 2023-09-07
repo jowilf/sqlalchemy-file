@@ -100,6 +100,16 @@ class TestSingleField:
             assert attachment.content.saved
             assert attachment.content.file.read() == fake_content.encode()
 
+    def test_create_frompath(self, fake_file, fake_content) -> None:
+        with Session(engine) as session:
+            session.add(Attachment(name="Create Fake file", content=File(content_path=fake_file.name)))
+            session.commit()
+            attachment = session.execute(
+                select(Attachment).where(Attachment.name == "Create Fake file")
+            ).scalar_one()
+            assert attachment.content.saved
+            assert attachment.content.file.read() == fake_content.encode()
+
     def test_file_is_created_when_flush(self, fake_file, fake_content) -> None:
         with Session(engine) as session:
             attachment = Attachment(name="Create Fake file 2", content=File(fake_file))
