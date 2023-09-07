@@ -43,9 +43,9 @@ class File(BaseFile):
     def __init__(
         self,
         content: Any = None,
-        content_path: Optional[str] = None,
         filename: Optional[str] = None,
         content_type: Optional[str] = None,
+        content_path: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
         if content is None and content_path is None:
@@ -115,10 +115,10 @@ class File(BaseFile):
         )
         stored_file = self.store_content(
             self.original_content,
-            self.content_path,
             upload_storage,
             extra=extra,
             headers=self.get("headers", None),
+            content_path=self.content_path,
         )
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
@@ -130,12 +130,12 @@ class File(BaseFile):
     def store_content(
         self,
         content: Any,
-        content_path: Optional[str] = None,
         upload_storage: Optional[str] = None,
         name: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         extra: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
+        content_path: Optional[str] = None,
     ) -> StoredFile:
         """Store content into provided `upload_storage`
         with additional `metadata`. Can be use by processors
@@ -145,11 +145,11 @@ class File(BaseFile):
         stored_file = StorageManager.save_file(
             name=name,
             content=content,
-            content_path=content_path,
             upload_storage=upload_storage,
             metadata=metadata,
             extra=extra,
             headers=headers,
+            content_path=content_path,
         )
         self["files"].append("{}/{}".format(upload_storage, name))
         return stored_file
