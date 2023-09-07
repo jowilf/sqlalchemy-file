@@ -102,7 +102,11 @@ class TestSingleField:
 
     def test_create_frompath(self, fake_file, fake_content) -> None:
         with Session(engine) as session:
-            session.add(Attachment(name="Create Fake file", content=File(content_path=fake_file.name)))
+            session.add(
+                Attachment(
+                    name="Create Fake file", content=File(content_path=fake_file.name)
+                )
+            )
             session.commit()
             attachment = session.execute(
                 select(Attachment).where(Attachment.name == "Create Fake file")

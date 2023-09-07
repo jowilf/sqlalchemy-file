@@ -122,7 +122,10 @@ class ThumbnailGenerator(Processor):
         )
         extra.update({"content_type": content_type, "meta_data": metadata})
         stored_file = file.store_content(
-            output, upload_storage=upload_storage, extra=extra, headers=file.get("headers", None)
+            output,
+            upload_storage=upload_storage,
+            extra=extra,
+            headers=file.get("headers", None),
         )
         file.update(
             {
