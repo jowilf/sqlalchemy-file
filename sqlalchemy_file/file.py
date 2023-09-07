@@ -56,7 +56,7 @@ class File(BaseFile):
             self._freeze()
         else:
             self.content_path = content_path
-            if content is None:
+            if content_path is not None:
                 self.original_content = None
                 filename = filename or os.path.basename(content_path)
                 size = os.path.getsize(content_path)

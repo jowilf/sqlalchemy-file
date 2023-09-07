@@ -225,4 +225,4 @@ class ImageValidator(ContentTypeValidator):
                 f"{self.min_aspect_ratio} - {self.max_aspect_ratio}",
             )
         file.update({"width": width, "height": height})
-        file.original_content.seek(0)
+        file.original_content.seek(0)  # type: ignore[union-attr]

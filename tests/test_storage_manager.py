@@ -37,3 +37,9 @@ class TestStorageManager:
         StorageManager.add_storage("first", get_dummy_container("first"))
         with pytest.raises(RuntimeError):
             StorageManager.add_storage("first", get_dummy_container("second"))
+
+    def test_save_file_missing_content(self):
+        with pytest.raises(
+            ValueError, match="Either content or content_path must be specified"
+        ):
+            StorageManager.save_file("id")

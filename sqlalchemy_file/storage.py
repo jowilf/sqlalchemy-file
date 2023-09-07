@@ -68,14 +68,14 @@ class StorageManager:
         cls,
         name: str,
         content: Optional[Iterator[bytes]] = None,
-        content_path: Optional[str] = None,
         upload_storage: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         extra: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
+        content_path: Optional[str] = None,
     ) -> StoredFile:
         if content is None and content_path is None:
-            raise ValueError("Either conent or content_path must be specified")
+            raise ValueError("Either content or content_path must be specified")
         if metadata is not None:
             warnings.warn(
                 'metadata attribute is deprecated. Use extra={"meta_data": ...} instead',
@@ -104,12 +104,16 @@ class StorageManager:
                 iterator=get_metadata_file_obj(extra["meta_data"]),
                 object_name=f"{name}.metadata.json",
             )
-        if content is None:
+        if content_path is not None:
             return StoredFile(
                 container.upload_object(
-                    file_path=content_path, object_name=name, extra=extra, headers=headers
+                    file_path=content_path,
+                    object_name=name,
+                    extra=extra,
+                    headers=headers,
                 )
             )
+        assert content is not None
         return StoredFile(
             container.upload_object_via_stream(
                 iterator=content, object_name=name, extra=extra, headers=headers
