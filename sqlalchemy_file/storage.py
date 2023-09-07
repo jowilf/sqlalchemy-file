@@ -110,12 +110,11 @@ class StorageManager:
                     file_path=content_path, object_name=name, extra=extra, headers=headers
                 )
             )
-        else:
-            return StoredFile(
-                container.upload_object_via_stream(
-                    iterator=content, object_name=name, extra=extra, headers=headers
-                )
+        return StoredFile(
+            container.upload_object_via_stream(
+                iterator=content, object_name=name, extra=extra, headers=headers
             )
+        )
 
     @classmethod
     def get_file(cls, path: str) -> StoredFile:
