@@ -95,7 +95,7 @@ class FileField(types.TypeDecorator):  # type: ignore
     ) -> Union[None, MutableList[File], File]:
         if value is None:
             return None
-        if type(value) is dict:
+        if isinstance(value, dict):
             return (
                 MutableList([self.upload_type.decode(value)])
                 if self.multiple
