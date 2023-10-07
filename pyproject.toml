@@ -44,18 +44,18 @@ Changelog = "https://jowilf.github.io/sqlalchemy-file/changelog/"
 [project.optional-dependencies]
 test = [
     "pytest >=7.2.0, <7.5.0",
-    "mypy ==1.4.1",
-    "ruff ==0.0.278",
-    "black ==23.7.0",
+    "mypy ==1.5.1",
+    "ruff ==0.0.292",
+    "black ==23.9.1",
     "coverage >=7.0.0, <7.4.0",
-    "fasteners ==0.18",
+    "fasteners ==0.19",
     "PyMySQL[rsa] >=1.0.2, <1.2.0",
     "psycopg2-binary >=2.9.5, <3.0.0",
     "Pillow >=9.4.0, <10.1.0",
     "python-multipart ==0.0.6",
     "fastapi >=0.92, <0.104",
     "Flask >=2.2, <2.3",
-    "Flask-SQLAlchemy >=3.0,<3.1"
+    "Flask-SQLAlchemy >=3.0,<3.2"
 ]
 doc = [
     "mkdocs-material >=9.0.0, <10.0.0",
