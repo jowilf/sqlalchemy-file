@@ -31,9 +31,22 @@ engine = create_engine(
 Base.metadata.create_all(engine)
 
 with Session(engine) as session, open("./example.txt", "rb") as local_file:
+    # from an opened local file
     session.add(Attachment(name="attachment1", content=local_file))
+
+    # from bytes
     session.add(Attachment(name="attachment2", content=b"Hello world"))
+
+    # from string
     session.add(Attachment(name="attachment3", content="Hello world"))
+
+    # from a File object with custom filename and content_type
     file = File(content="Hello World", filename="hello.txt", content_type="text/plain")
     session.add(Attachment(name="attachment4", content=file))
+
+    # from a File object specifying a content path
+    session.add(
+        Attachment(name="attachment5", content=File(content_path="./example.txt"))
+    )
+
     session.commit()
