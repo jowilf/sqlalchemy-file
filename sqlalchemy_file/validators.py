@@ -7,6 +7,8 @@ from sqlalchemy_file.exceptions import (
     DimensionValidationError,
     InvalidImageError,
     SizeValidationError,
+    InvalidAudioError,
+    DurationValidationError
 )
 from sqlalchemy_file.helpers import convert_size
 
@@ -226,3 +228,94 @@ class ImageValidator(ContentTypeValidator):
             )
         file.update({"width": width, "height": height})
         file.original_content.seek(0)  # type: ignore[union-attr]
+
+
+class AudioValidator(ContentTypeValidator):
+    """Default Validator for AudioField.
+
+    Attributes:
+        min_ms: Minimum allowed duration (in milliseconds).
+        max_ms: Maximum allowed duration (in milliseconds).
+        allowed_content_types: An iterable whose items are
+                    allowed content types. Default is `audio/*`
+
+    Example:
+        ```Python
+
+        class Book(Base):
+            __tablename__ = "book"
+
+            id = Column(Integer, autoincrement=True, primary_key=True)
+            title = Column(String(100), unique=True)
+            audiobook = Column(
+                AudioField(
+                    audio_validator=AudioValidator(
+                        allowed_content_types=["audio/mpeg", "audio/mp4", "audio/wav"],
+                        min_ms=3600000, # 1 hour
+                        max_ms=43200000, # 12 hours
+                    )
+                )
+            )
+        ```
+
+    Raises:
+        ContentTypeValidationError: When file `content_type` not in allowed_content_types
+        InvalidAudioError: When file is not a valid audio
+        DimensionValidationError: When audio duration constraints fail.
+
+    Will add `width` and `height` properties to the file object
+    """
+
+    def __init__(
+        self,
+        min_ms: Optional[int] = None,
+        max_ms: Optional[int] = None,
+        allowed_content_types: Optional[List[str]] = None,
+    ):
+        from pydub import AudioSegment  # type: ignore
+
+        AUDIO_MIME_TYPES = [
+            "audio/aav",
+            "audio/midi",
+            "audio/x-midi",
+            "audio/mpeg",
+            "audio/ogg",
+            "audio/opus",
+            "audio/wav",
+            "audio/webm",
+            "audio/3gpp"
+        ]
+
+        super().__init__(
+            allowed_content_types
+            if allowed_content_types is not None
+            else AUDIO_MIME_TYPES
+        )
+        self.min_duration = min_ms if min_ms else None
+        self.max_duration = max_ms if max_ms else None
+
+    def process(self, file: "File", attr_key: str) -> None:
+        super().process(file, attr_key)
+        from io import BytesIO
+        from pydub import AudioSegment
+        from pydub.exceptions import PydubException
+
+        try:
+            audio = AudioSegment.from_file(BytesIO(file.original_content.read()))
+        except (PydubException, OSError):
+            raise InvalidAudioError(attr_key, "Provide valid audio file")
+        duration = int(audio.duration_seconds * 1000)
+        if self.min_duration and duration < self.min_duration:
+            raise DurationValidationError(
+                attr_key,
+                f"Minimum allowed duration is: {self.min_duration} milliseconds, but {duration} is given.",
+            )
+        if self.max_duration and self.max_duration < duration:
+            raise DurationValidationError(
+                attr_key,
+                f"Maximum allowed duration is: {self.max_duration}, but {duration} is given.",
+            )
+
+        file.update({"duration": duration})
+        file.original_content.seek(0)  # type: ignore[union-attr]
+
