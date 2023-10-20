@@ -231,7 +231,7 @@ class ImageValidator(ContentTypeValidator):
 
 
 class AudioValidator(ContentTypeValidator):
-    """Default Validator for AudioField.
+    """Default Validator for AudioField. Uses `pydub` for audio operations, which might require `ffmpeg`.
 
     Attributes:
         min_ms: Minimum allowed duration (in milliseconds).
