@@ -32,6 +32,7 @@ classifiers = [
 dependencies = [
     "SQLAlchemy >=1.4, <2.1",
     "apache-libcloud >=3.6, <3.9",
+    "Pillow >=9.4.0, <10.1.0",
 ]
 dynamic = ["version"]
 
@@ -51,7 +52,6 @@ test = [
     "fasteners ==0.19",
     "PyMySQL[rsa] >=1.0.2, <1.2.0",
     "psycopg2-binary >=2.9.5, <3.0.0",
-    "Pillow >=9.4.0, <10.1.0",
     "python-multipart ==0.0.6",
     "fastapi >=0.92, <0.104",
     "Flask >=2.2, <2.3",
