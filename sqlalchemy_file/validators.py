@@ -280,6 +280,7 @@ class AudioValidator(ContentTypeValidator):
             "audio/ogg",
             "audio/opus",
             "audio/wav",
+            "audio/x-wav",
             "audio/webm",
             "audio/3gpp",
         ]
