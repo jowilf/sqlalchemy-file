@@ -5,10 +5,10 @@ from sqlalchemy_file.exceptions import (
     AspectRatioValidationError,
     ContentTypeValidationError,
     DimensionValidationError,
+    DurationValidationError,
+    InvalidAudioError,
     InvalidImageError,
     SizeValidationError,
-    InvalidAudioError,
-    DurationValidationError
 )
 from sqlalchemy_file.helpers import convert_size
 
@@ -272,9 +272,7 @@ class AudioValidator(ContentTypeValidator):
         max_ms: Optional[int] = None,
         allowed_content_types: Optional[List[str]] = None,
     ):
-        from pydub import AudioSegment  # type: ignore
-
-        AUDIO_MIME_TYPES = [
+        audio_mime_types = [
             "audio/aav",
             "audio/midi",
             "audio/x-midi",
@@ -283,13 +281,13 @@ class AudioValidator(ContentTypeValidator):
             "audio/opus",
             "audio/wav",
             "audio/webm",
-            "audio/3gpp"
+            "audio/3gpp",
         ]
 
         super().__init__(
             allowed_content_types
             if allowed_content_types is not None
-            else AUDIO_MIME_TYPES
+            else audio_mime_types
         )
         self.min_duration = min_ms if min_ms else None
         self.max_duration = max_ms if max_ms else None
@@ -297,18 +295,19 @@ class AudioValidator(ContentTypeValidator):
     def process(self, file: "File", attr_key: str) -> None:
         super().process(file, attr_key)
         from io import BytesIO
-        from pydub import AudioSegment
-        from pydub.exceptions import PydubException
+
+        from pydub import AudioSegment  # type: ignore
+        from pydub.exceptions import PydubException  # type: ignore
 
         try:
-            audio = AudioSegment.from_file(BytesIO(file.original_content.read()))
+            audio = AudioSegment.from_file(BytesIO(file.original_content.read()))  # type: ignore
         except (PydubException, OSError):
             raise InvalidAudioError(attr_key, "Provide valid audio file")
         duration = int(audio.duration_seconds * 1000)
         if self.min_duration and duration < self.min_duration:
             raise DurationValidationError(
                 attr_key,
-                f"Minimum allowed duration is: {self.min_duration} milliseconds, but {duration} is given.",
+                f"Minimum allowed duration is: {self.min_duration}, but {duration} is given.",
             )
         if self.max_duration and self.max_duration < duration:
             raise DurationValidationError(
@@ -318,4 +317,3 @@ class AudioValidator(ContentTypeValidator):
 
         file.update({"duration": duration})
         file.original_content.seek(0)  # type: ignore[union-attr]
-

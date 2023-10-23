@@ -4,7 +4,7 @@ import tempfile
 import pytest
 from sqlalchemy import Column, Integer, String, select
 from sqlalchemy.orm import Session, declarative_base
-from sqlalchemy_file.exceptions import ContentTypeValidationError, InvalidImageError
+from sqlalchemy_file.exceptions import ContentTypeValidationError, InvalidAudioError
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import AudioField
 
@@ -38,9 +38,9 @@ def fake_valid_audio_content():
 
 
 @pytest.fixture
-def fake_valid_audio(fake_valid_image_content):
+def fake_valid_audio(fake_valid_audio_content):
     file = tempfile.NamedTemporaryFile(suffix=".mp3")
-    data = fake_valid_image_content
+    data = fake_valid_audio_content
     file.write(data)
     file.seek(0)
     return file
@@ -83,7 +83,7 @@ class TestAudioField:
                 select(AudioBook).where(AudioBook.title == "Pointless Meetings")
             ).scalar_one()
             assert book.audio.file.read() == fake_valid_audio_content
-            assert book.cover["duration"] is not None
+            assert book.audio["duration"] is not None
 
     def teardown_method(self, method):
         for obj in StorageManager.get().list_objects():

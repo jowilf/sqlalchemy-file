@@ -5,7 +5,6 @@ import pytest
 from sqlalchemy import Column, Integer, String, select
 from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy_file.exceptions import (
-    InvalidAudioError,
     DurationValidationError,
 )
 from sqlalchemy_file.storage import StorageManager
@@ -58,10 +57,7 @@ class AudioBook(Base):
     title = Column(String(100), unique=True)
     audio = Column(
         AudioField(
-            audio_validator=AudioValidator(
-                min_ms=1500, # 1.5s
-                max_ms=2500  # 2.5s
-            )
+            audio_validator=AudioValidator(min_ms=1500, max_ms=2000)  # 1.5s  # 2.5s
         )
     )
 
@@ -80,7 +76,7 @@ class TestAudioValidator:
             session.add(AudioBook(title="Pointless Meetings", audio=fake_audio_short))
             with pytest.raises(
                 DurationValidationError,
-            match="Minimum allowed duration is: 1500, but 1000 is given",
+                match="Minimum allowed duration is: 1500, but 1000 is given.",
             ):
                 session.flush()
 
@@ -98,9 +94,9 @@ class TestAudioValidator:
             session.add(AudioBook(title="Pointless Meetings", audio=fake_valid_audio))
             session.flush()
             book = session.execute(
-                select(Book).where(Book.title == "Pointless Meetings")
+                select(AudioBook).where(AudioBook.title == "Pointless Meetings")
             ).scalar_one()
-            assert book.cover.file is not None
+            assert book.audio.file is not None
 
     def teardown_method(self, method):
         for obj in StorageManager.get().list_objects():
