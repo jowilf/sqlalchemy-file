@@ -1,9 +1,7 @@
 import contextlib
-import os
 from typing import Generator, List, Optional, Union
 
 import uvicorn
-from libcloud.storage.drivers.local import LocalStorageDriver
 from libcloud.storage.providers import get_driver
 from libcloud.storage.types import (
     ContainerAlreadyExistsError,
@@ -14,6 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy import Column
 from sqlalchemy_file import File, ImageField
 from sqlalchemy_file.exceptions import ValidationError
+from sqlalchemy_file.helpers import LOCAL_STORAGE_DRIVER_NAME
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.validators import SizeValidator
 from sqlmodel import Field, Session, SQLModel, create_engine, select
@@ -29,9 +28,14 @@ from fastapi import File as FormFile
 
 engine = create_engine("sqlite:///example.db?check_same_thread=False", echo=True)
 
-os.makedirs("./upload_dir", 0o777, exist_ok=True)
-driver = get_driver(Provider.LOCAL)("./upload_dir")
-
+cls = get_driver(Provider.AZURE_BLOBS)
+driver = cls(
+    key="devstoreaccount1",
+    secret="Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
+    host="localhost",
+    port=10000,
+    secure=False,
+)
 
 with contextlib.suppress(ContainerAlreadyExistsError):
     driver.create_container(container_name="category")
@@ -83,7 +87,11 @@ def category_form(
     return Category(name=name, image=image)
 
 
-app = FastAPI(title="SQLAlchemy-file Example", debug=True)
+app = FastAPI(
+    title="Azure Blob storage Example",
+    on_startup=[lambda: SQLModel.metadata.create_all(engine)],
+    debug=True,
+)
 
 
 def get_session() -> Generator[Session, None, None]:
@@ -127,7 +135,7 @@ async def create_new(
 async def serve_files(storage: str = Path(...), file_id: str = Path(...)):
     try:
         file = StorageManager.get_file(f"{storage}/{file_id}")
-        if isinstance(file.object.driver, LocalStorageDriver):
+        if isinstance(file.object.driver.name, LOCAL_STORAGE_DRIVER_NAME):
             """If file is stored in local storage, just return a
             FileResponse with the fill full path."""
             return FileResponse(

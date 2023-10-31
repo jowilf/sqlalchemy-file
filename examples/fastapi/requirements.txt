@@ -1,0 +1,6 @@
+fastapi
+sqlmodel
+sqlalchemy-file
+pillow
+python-multipart
+uvicorn
