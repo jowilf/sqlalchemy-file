@@ -1,21 +1,12 @@
-import contextlib
-from typing import Generator, List, Optional, Union
+from typing import List
 
-import uvicorn
-from libcloud.storage.providers import get_driver
 from libcloud.storage.types import (
-    ContainerAlreadyExistsError,
     ObjectDoesNotExistError,
-    Provider,
 )
-from pydantic import BaseModel
-from sqlalchemy import Column
-from sqlalchemy_file import File, ImageField
 from sqlalchemy_file.exceptions import ValidationError
 from sqlalchemy_file.helpers import LOCAL_STORAGE_DRIVER_NAME
 from sqlalchemy_file.storage import StorageManager
-from sqlalchemy_file.validators import SizeValidator
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+from sqlmodel import Session, select
 from starlette.responses import (
     FileResponse,
     JSONResponse,
@@ -23,86 +14,17 @@ from starlette.responses import (
     StreamingResponse,
 )
 
-from fastapi import Depends, FastAPI, Form, Path, UploadFile
-from fastapi import File as FormFile
+from fastapi import Depends, FastAPI, Path
 
-engine = create_engine("sqlite:///example.db?check_same_thread=False", echo=True)
-
-cls = get_driver(Provider.AZURE_BLOBS)
-driver = cls(
-    key="devstoreaccount1",
-    secret="Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
-    host="localhost",
-    port=10000,
-    secure=False,
-)
-
-with contextlib.suppress(ContainerAlreadyExistsError):
-    driver.create_container(container_name="category")
-
-
-container = driver.get_container(container_name="category")
-
-StorageManager.add_storage("category", container)
-
-
-class Thumbnail(BaseModel):
-    path: str
-    url: Optional[str]
-
-
-class FileInfo(BaseModel):
-    filename: str
-    content_type: str
-    path: str
-    url: Optional[str]
-    thumbnail: Thumbnail
-
-
-class CategoryBase(SQLModel):
-    id: Optional[int] = Field(None, primary_key=True)
-    name: str = Field(None, min_length=3, max_length=100)
-
-
-class Category(CategoryBase, table=True):
-    image: Union[File, UploadFile, None] = Field(
-        sa_column=Column(
-            ImageField(
-                upload_storage="category",
-                thumbnail_size=(200, 200),
-                validators=[SizeValidator(max_size="1M")],
-            )
-        )
-    )
-
-
-class CategoryOut(CategoryBase):
-    image: Optional[FileInfo]
-
-
-def category_form(
-    name: str = Form(..., min_length=3),
-    image: Optional[UploadFile] = FormFile(None),
-):
-    return Category(name=name, image=image)
-
+from .depends import get_session
+from .models import Category, CategoryOut, category_form, init_db
+from .storage import init_storage
 
 app = FastAPI(
     title="Azure Blob storage Example",
-    on_startup=[lambda: SQLModel.metadata.create_all(engine)],
+    on_startup=[init_db, init_storage],
     debug=True,
 )
-
-
-def get_session() -> Generator[Session, None, None]:
-    session: Session = Session(engine, expire_on_commit=False)
-    try:
-        yield session
-    except Exception as e:
-        session.rollback()
-        raise e
-    finally:
-        session.close()
 
 
 @app.get("/categories", response_model=List[CategoryOut])
@@ -153,9 +75,3 @@ async def serve_files(storage: str = Path(...), file_id: str = Path(...)):
             )
     except ObjectDoesNotExistError:
         return JSONResponse({"detail": "Not found"}, status_code=404)
-
-
-if __name__ == "__main__":
-    SQLModel.metadata.create_all(engine)
-    uvicorn.run(app, port=8000)
-    # Navigate to http://127.0.0.1:8000/docs
