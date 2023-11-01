@@ -44,7 +44,7 @@ Changelog = "https://jowilf.github.io/sqlalchemy-file/changelog/"
 [project.optional-dependencies]
 test = [
     "pytest >=7.2.0, <7.5.0",
-    "mypy ==1.5.1",
+    "mypy ==1.6.1",
     "ruff ==0.0.292",
     "black ==23.9.1",
     "coverage >=7.0.0, <7.4.0",
