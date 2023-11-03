@@ -57,7 +57,7 @@ async def create_new(
 async def serve_files(storage: str = Path(...), file_id: str = Path(...)):
     try:
         file = StorageManager.get_file(f"{storage}/{file_id}")
-        if isinstance(file.object.driver.name, LOCAL_STORAGE_DRIVER_NAME):
+        if file.object.driver.name == LOCAL_STORAGE_DRIVER_NAME:
             """If file is stored in local storage, just return a
             FileResponse with the fill full path."""
             return FileResponse(
