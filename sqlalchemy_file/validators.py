@@ -173,8 +173,8 @@ class ImageValidator(ContentTypeValidator):
             from PIL import Image  # type: ignore
         except ImportError as e:
             raise ImportError(
-                "The 'PIL' module is required for image processing. "
-                "Please install it using 'pip install Pillow'."
+                "The 'PIL' module is required for image processing, "
+                "you can install it using 'pip install Pillow'."
             ) from e
 
         Image.init()
