@@ -47,7 +47,6 @@ test = [
     "mypy ==1.5.1",
     "ruff ==0.0.292",
     "black ==23.9.1",
-    "coverage >=7.0.0, <7.4.0",
     "fasteners ==0.19",
     "PyMySQL[rsa] >=1.0.2, <1.2.0",
     "psycopg2-binary >=2.9.5, <3.0.0",
@@ -57,6 +56,9 @@ test = [
     "fastapi >=0.92, <0.105",
     "Flask >=2.2, <2.3",
     "Flask-SQLAlchemy >=3.0,<3.2"
+]
+cov = [
+    "coverage[toml] >=7.0.0, <7.4.0"
 ]
 doc = [
     "mkdocs-material >=9.0.0, <10.0.0",
@@ -70,6 +72,7 @@ dev = [
 [tool.hatch.envs.default]
 features = [
     "test",
+    "cov",
     "dev"
 ]
 [tool.hatch.envs.default.scripts]
@@ -81,6 +84,7 @@ format = [
 [tool.hatch.envs.test]
 features = [
     "test",
+    "cov",
 ]
 [tool.hatch.envs.test.scripts]
 lint = [
@@ -102,6 +106,17 @@ sqla_version = ["1.4.x", "2.0.x"]
 matrix.sqla_version.dependencies = [
     { value = "SQLAlchemy >=2.0, <2.1", if = ["2.0.x"] },
     { value = "SQLAlchemy >=1.4, <1.5", if = ["1.4.x"] },
+]
+
+[tool.hatch.envs.cov]
+features = [
+    "cov",
+]
+[tool.hatch.envs.cov.scripts]
+report = [
+    "coverage combine",
+    "coverage report --show-missing",
+    "coverage xml"
 ]
 
 [tool.hatch.envs.docs]
