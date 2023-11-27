@@ -122,6 +122,7 @@ show_missing = true
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",
+    "except ImportError"
 ]
 
 [tool.coverage.run]
