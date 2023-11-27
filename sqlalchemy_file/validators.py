@@ -169,7 +169,13 @@ class ImageValidator(ContentTypeValidator):
         max_aspect_ratio: Optional[float] = None,
         allowed_content_types: Optional[List[str]] = None,
     ):
-        from PIL import Image  # type: ignore
+        try:
+            from PIL import Image  # type: ignore
+        except ImportError as e:
+            raise ImportError(
+                "The 'PIL' module is required for image processing. "
+                "Please install it using 'pip install Pillow'."
+            ) from e
 
         Image.init()
         super().__init__(

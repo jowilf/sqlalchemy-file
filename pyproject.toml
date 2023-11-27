@@ -53,7 +53,8 @@ test = [
     "psycopg2-binary >=2.9.5, <3.0.0",
     "Pillow >=9.4.0, <10.1.0",
     "python-multipart ==0.0.6",
-    "fastapi >=0.92, <0.104",
+    "sqlmodel >=0.0.11, <0.0.13",
+    "fastapi >=0.92, <0.105",
     "Flask >=2.2, <2.3",
     "Flask-SQLAlchemy >=3.0,<3.2"
 ]
@@ -101,11 +102,6 @@ sqla_version = ["1.4.x", "2.0.x"]
 matrix.sqla_version.dependencies = [
     { value = "SQLAlchemy >=2.0, <2.1", if = ["2.0.x"] },
     { value = "SQLAlchemy >=1.4, <1.5", if = ["1.4.x"] },
-    { value = "sqlmodel ==0.0.8", if = ["1.4.x"] },
-]
-matrix.sqla_version.scripts = [
-    { key = "run", value = 'coverage run -m pytest tests --ignore=tests/test_sqlmodel.py', if = ["2.0.x"] },
-    { key = "cov", value = '', if = ["2.0.x"] },
 ]
 
 [tool.hatch.envs.docs]
