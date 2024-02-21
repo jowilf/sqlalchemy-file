@@ -50,7 +50,7 @@ class FileField(types.TypeDecorator):  # type: ignore
         """Parameters:
         upload_storage: storage to use
         validators: List of validators to apply
-        processors: List of validators to apply
+        processors: List of processors to apply
         upload_type: File class to use, could be
         used to set custom File class
         multiple: Use this to save multiple files
