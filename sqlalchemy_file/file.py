@@ -2,6 +2,7 @@ import os.path
 import uuid
 import warnings
 from datetime import datetime
+from datetime import timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy_file.base import BaseFile
@@ -121,7 +122,7 @@ class File(BaseFile):
         )
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
-        self["uploaded_at"] = datetime.utcnow().isoformat()
+        self["uploaded_at"] = datetime.now(timezone.utc).isoformat()
         self["path"] = f"{upload_storage}/{stored_file.name}"
         self["url"] = stored_file.get_cdn_url()
         self["saved"] = True
