@@ -125,7 +125,7 @@ class StorageManager:
         """Retrieve the file with `provided` path,
         path is expected to be `storage_name/file_id`.
         """
-        upload_storage, file_id = path.split("/")
+        upload_storage, file_id = cls._get_storage_and_file_id(path)
         return StoredFile(StorageManager.get(upload_storage).get_object(file_id))
 
     @classmethod
@@ -134,7 +134,7 @@ class StorageManager:
 
         The path is expected to be `storage_name/file_id`.
         """
-        upload_storage, file_id = path.split("/")
+        upload_storage, file_id = cls._get_storage_and_file_id(path)
         obj = StorageManager.get(upload_storage).get_object(file_id)
         if obj.driver.name == LOCAL_STORAGE_DRIVER_NAME:
             """Try deleting associated metadata file"""
@@ -148,3 +148,8 @@ class StorageManager:
         """This is only for testing pourposes, resets the StorageManager."""
         cls._default_storage_name = None
         cls._storages = {}
+
+    @classmethod
+    def _get_storage_and_file_id(cls, path: str) -> (str, str):
+        path_parts = path.split("/")
+        return '/'.join(path_parts[:-1]), path_parts[-1]
