@@ -152,4 +152,4 @@ class StorageManager:
     @classmethod
     def _get_storage_and_file_id(cls, path: str) -> Tuple[str, str]:
         path_parts = path.split("/")
-        return '/'.join(path_parts[:-1]), path_parts[-1]
+        return "/".join(path_parts[:-1]), path_parts[-1]
