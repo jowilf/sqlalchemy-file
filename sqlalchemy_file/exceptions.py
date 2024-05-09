@@ -29,3 +29,11 @@ class DimensionValidationError(ValidationError):
 
 class AspectRatioValidationError(ValidationError):
     pass
+
+
+class InvalidAudioError(ValidationError):
+    pass
+
+
+class DurationValidationError(ValidationError):
+    pass
