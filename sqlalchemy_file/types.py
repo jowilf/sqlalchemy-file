@@ -35,6 +35,12 @@ class FileField(types.TypeDecorator):  # type: ignore
     impl = types.JSON
     cache_ok = False
 
+    @property
+    def python_type(self) -> Type[Union[File, List[File]]]:
+        if self.multiple:
+            return MutableList[File]
+        return File
+
     def __init__(
         self,
         *args: Tuple[Any],
