@@ -68,6 +68,10 @@ class TestSingleField:
         StorageManager._clear()
         StorageManager.add_storage("test", get_test_container("test-simple-field"))
 
+    def test_python_type(self) -> None:
+        field = FileField()
+        assert field.python_type is File
+
     def test_create_from_string(self, fake_content) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Create fake string", content=fake_content))

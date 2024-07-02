@@ -4,6 +4,8 @@ import pytest
 from libcloud.storage.types import ObjectDoesNotExistError
 from sqlalchemy import Column, Integer, String, select
 from sqlalchemy.orm import Session, declarative_base
+from sqlalchemy_file.file import File
+from sqlalchemy_file.mutable_list import MutableList
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 
@@ -46,6 +48,10 @@ class TestMultipleField:
         Base.metadata.create_all(engine)
         StorageManager._clear()
         StorageManager.add_storage("test", get_test_container("test-multiple-field"))
+
+    def test_python_type(self) -> None:
+        field = FileField(multiple=True)
+        assert field.python_type == MutableList[File]
 
     def test_create_multiple_content(self, fake_file, fake_content) -> None:
         with Session(engine) as session:
