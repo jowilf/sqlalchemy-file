@@ -1,6 +1,5 @@
 import typing
-from typing import Any, overload, Literal, override
-
+from typing import Any, Literal, overload, override
 
 STR_ATTRS = Literal[
     "url",
@@ -28,38 +27,48 @@ class BaseFile(typing.Dict[str, Any]):
     """
 
     @overload
-    def __getitem__(self, key: STR_ATTRS) -> str: ...
+    def __getitem__(self, key: STR_ATTRS) -> str:
+        ...
 
     @overload
-    def __getitem__(self, key: INT_ATTRS) -> int: ...
+    def __getitem__(self, key: INT_ATTRS) -> int:
+        ...
 
     @overload
-    def __getitem__(self, key: DICT_ATTRS) -> dict[str, str]: ...
+    def __getitem__(self, key: DICT_ATTRS) -> dict[str, str]:
+        ...
 
     @overload
-    def __getitem__(self, key: STR_LIST_ATTRS) -> list[str]: ...
+    def __getitem__(self, key: STR_LIST_ATTRS) -> list[str]:
+        ...
 
     @overload
-    def __getitem__(self, key: BOOL_ATTRS) -> bool: ...
+    def __getitem__(self, key: BOOL_ATTRS) -> bool:
+        ...
 
     @override
     def __getitem__(self, key: str) -> Any:
         return dict.__getitem__(self, key)
 
     @overload
-    def __getattr__(self, name: STR_ATTRS) -> str: ...
+    def __getattr__(self, name: STR_ATTRS) -> str:
+        ...
 
     @overload
-    def __getattr__(self, name: INT_ATTRS) -> int: ...
+    def __getattr__(self, name: INT_ATTRS) -> int:
+        ...
 
     @overload
-    def __getattr__(self, name: DICT_ATTRS) -> dict[str, str]: ...
+    def __getattr__(self, name: DICT_ATTRS) -> dict[str, str]:
+        ...
 
     @overload
-    def __getattr__(self, name: STR_LIST_ATTRS) -> list[str]: ...
+    def __getattr__(self, name: STR_LIST_ATTRS) -> list[str]:
+        ...
 
     @overload
-    def __getattr__(self, name: BOOL_ATTRS) -> bool: ...
+    def __getattr__(self, name: BOOL_ATTRS) -> bool:
+        ...
 
     def __getattr__(self, name: str) -> Any:
         try:
