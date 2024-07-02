@@ -1,6 +1,6 @@
 import contextlib
 import warnings
-from typing import Any, ClassVar, Dict, Iterator, Optional
+from typing import Any, ClassVar, Dict, Iterator, Optional, Tuple
 
 from libcloud.storage.base import Container
 from libcloud.storage.types import ObjectDoesNotExistError
@@ -122,10 +122,12 @@ class StorageManager:
 
     @classmethod
     def get_file(cls, path: str) -> StoredFile:
-        """Retrieve the file with `provided` path,
-        path is expected to be `storage_name/file_id`.
         """
-        upload_storage, file_id = path.split("/")
+        Retrieve the file with `provided` path.
+
+        The path is expected to be `storage_name/file_id`.
+        """
+        upload_storage, file_id = cls._get_storage_and_file_id(path)
         return StoredFile(StorageManager.get(upload_storage).get_object(file_id))
 
     @classmethod
@@ -134,7 +136,7 @@ class StorageManager:
 
         The path is expected to be `storage_name/file_id`.
         """
-        upload_storage, file_id = path.split("/")
+        upload_storage, file_id = cls._get_storage_and_file_id(path)
         obj = StorageManager.get(upload_storage).get_object(file_id)
         if obj.driver.name == LOCAL_STORAGE_DRIVER_NAME:
             """Try deleting associated metadata file"""
@@ -145,6 +147,16 @@ class StorageManager:
 
     @classmethod
     def _clear(cls) -> None:
-        """This is only for testing pourposes, resets the StorageManager."""
+        """This is only for testing purposes, resets the StorageManager."""
         cls._default_storage_name = None
         cls._storages = {}
+
+    @classmethod
+    def _get_storage_and_file_id(cls, path: str) -> Tuple[str, str]:
+        """
+        Extract the storage name and file_id from the path.
+
+        The path is expected to be `storage_name/file_id`.
+        """
+        path_parts = path.split("/")
+        return "/".join(path_parts[:-1]), path_parts[-1]
