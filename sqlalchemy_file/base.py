@@ -1,5 +1,21 @@
 import typing
-from typing import Any
+from typing import Any, overload, Literal, override
+
+
+STR_ATTRS = Literal[
+    "url",
+    "filename",
+    "content_type",
+    "file_id",
+    "upload_storage",
+    "uploaded_at",
+    "path",
+    "url",
+]
+BOOL_ATTRS = Literal["saved"]
+INT_ATTRS = Literal["size"]
+DICT_ATTRS = Literal["meta_data"]
+STR_LIST_ATTRS = Literal["files"]
 
 
 class BaseFile(typing.Dict[str, Any]):
@@ -11,8 +27,39 @@ class BaseFile(typing.Dict[str, Any]):
 
     """
 
+    @overload
+    def __getitem__(self, key: STR_ATTRS) -> str: ...
+
+    @overload
+    def __getitem__(self, key: INT_ATTRS) -> int: ...
+
+    @overload
+    def __getitem__(self, key: DICT_ATTRS) -> dict[str, str]: ...
+
+    @overload
+    def __getitem__(self, key: STR_LIST_ATTRS) -> list[str]: ...
+
+    @overload
+    def __getitem__(self, key: BOOL_ATTRS) -> bool: ...
+
+    @override
     def __getitem__(self, key: str) -> Any:
         return dict.__getitem__(self, key)
+
+    @overload
+    def __getattr__(self, name: STR_ATTRS) -> str: ...
+
+    @overload
+    def __getattr__(self, name: INT_ATTRS) -> int: ...
+
+    @overload
+    def __getattr__(self, name: DICT_ATTRS) -> dict[str, str]: ...
+
+    @overload
+    def __getattr__(self, name: STR_LIST_ATTRS) -> list[str]: ...
+
+    @overload
+    def __getattr__(self, name: BOOL_ATTRS) -> bool: ...
 
     def __getattr__(self, name: str) -> Any:
         try:
@@ -20,6 +67,7 @@ class BaseFile(typing.Dict[str, Any]):
         except KeyError:
             raise AttributeError(name)
 
+    @override
     def __setitem__(self, key: str, value: Any) -> None:
         if getattr(self, "_frozen", False):
             raise TypeError("Already saved files are immutable")
@@ -27,6 +75,7 @@ class BaseFile(typing.Dict[str, Any]):
 
     __setattr__ = __setitem__
 
+    @override
     def __delattr__(self, name: str) -> None:
         if getattr(self, "_frozen", False):
             raise TypeError("Already saved files are immutable")
@@ -36,6 +85,7 @@ class BaseFile(typing.Dict[str, Any]):
         except KeyError:
             raise AttributeError(name)
 
+    @override
     def __delitem__(self, key: str) -> None:
         if object.__getattribute__(self, "_frozen"):
             raise TypeError("Already saved files are immutable")
