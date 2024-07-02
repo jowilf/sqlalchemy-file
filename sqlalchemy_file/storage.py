@@ -122,8 +122,7 @@ class StorageManager:
 
     @classmethod
     def get_file(cls, path: str) -> StoredFile:
-        """
-        Retrieve the file with `provided` path.
+        """Retrieve the file with `provided` path.
 
         The path is expected to be `storage_name/file_id`.
         """
@@ -153,8 +152,7 @@ class StorageManager:
 
     @classmethod
     def _get_storage_and_file_id(cls, path: str) -> Tuple[str, str]:
-        """
-        Extract the storage name and file_id from the path.
+        """Extract the storage name and file_id from the path.
 
         The path is expected to be `storage_name/file_id`.
         """
