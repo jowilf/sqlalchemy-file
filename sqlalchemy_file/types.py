@@ -9,7 +9,7 @@ from sqlalchemy_file.helpers import flatmap
 from sqlalchemy_file.mutable_list import MutableList
 from sqlalchemy_file.processors import Processor, ThumbnailGenerator
 from sqlalchemy_file.storage import StorageManager
-from sqlalchemy_file.validators import ImageValidator, Validator
+from sqlalchemy_file.validators import AudioValidator, ImageValidator, Validator
 
 
 class FileField(types.TypeDecorator):  # type: ignore
@@ -154,6 +154,58 @@ class ImageField(FileField):
                 processors = []
             processors.append(ThumbnailGenerator(thumbnail_size))
         validators.append(image_validator)
+        super().__init__(
+            *args,
+            upload_storage=upload_storage,
+            validators=validators,
+            processors=processors,
+            upload_type=upload_type,
+            multiple=multiple,
+            extra=extra,
+            headers=headers,
+            **kwargs,
+        )
+
+
+class AudioField(FileField):
+    """Inherits all attributes and methods from [FileField][sqlalchemy_file.types.FileField],
+    but also validates that the uploaded object is a valid audio.
+    """
+
+    cache_ok = False
+
+    def __init__(
+        self,
+        *args: Tuple[Any],
+        upload_storage: Optional[str] = None,
+        audio_validator: Optional[AudioValidator] = None,
+        validators: Optional[List[Validator]] = None,
+        processors: Optional[List[Processor]] = None,
+        upload_type: Type[File] = File,
+        multiple: Optional[bool] = False,
+        extra: Optional[Dict[str, str]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        **kwargs: Dict[str, Any],
+    ) -> None:
+        """Parameters
+        upload_storage: storage to use
+        audio_validator: AudioField use default audio
+        validator, Use this property to customize it.
+        thumbnail_size: If set, a thumbnail will be generated
+        from original image using [ThumbnailGenerator]
+        [sqlalchemy_file.processors.ThumbnailGenerator]
+        validators: List of additional validators to apply
+        processors: List of validators to apply
+        upload_type: File class to use, could be
+        used to set custom File class
+        multiple: Use this to save multiple files
+        extra: Extra attributes (driver specific).
+        """
+        if validators is None:
+            validators = []
+        if audio_validator is None:
+            audio_validator = AudioValidator()
+        validators.append(audio_validator)
         super().__init__(
             *args,
             upload_storage=upload_storage,
