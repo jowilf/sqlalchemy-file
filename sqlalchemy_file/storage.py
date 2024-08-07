@@ -127,7 +127,7 @@ class StorageManager:
         The path is expected to be `storage_name/file_id`.
         """
         upload_storage, file_id = cls._get_storage_and_file_id(path)
-        return StoredFile(StorageManager.get(upload_storage).get_object(file_id))
+        return StoredFile(cls.get(upload_storage).get_object(file_id))
 
     @classmethod
     def delete_file(cls, path: str) -> bool:
@@ -136,7 +136,7 @@ class StorageManager:
         The path is expected to be `storage_name/file_id`.
         """
         upload_storage, file_id = cls._get_storage_and_file_id(path)
-        obj = StorageManager.get(upload_storage).get_object(file_id)
+        obj = cls.get(upload_storage).get_object(file_id)
         if obj.driver.name == LOCAL_STORAGE_DRIVER_NAME:
             """Try deleting associated metadata file"""
             with contextlib.suppress(ObjectDoesNotExistError):
@@ -156,5 +156,9 @@ class StorageManager:
 
         The path is expected to be `storage_name/file_id`.
         """
-        path_parts = path.split("/")
-        return "/".join(path_parts[:-1]), path_parts[-1]
+        # first trying complex file_id
+        storage_name, file_id = path.split("/", 1)
+        if storage_name in cls._storages:
+            return storage_name, file_id
+        # the trying complex storage name
+        return tuple(path.rsplit("/", 1))
