@@ -18,6 +18,18 @@ class TestStorageManager:
             "file",
         )
 
+    def test_get_storage_and_complex_file_id(self) -> None:
+        StorageManager.add_storage("storage", get_dummy_container("storage"))
+
+        assert StorageManager._get_storage_and_file_id("storage/file") == (
+            "storage",
+            "file",
+        )
+        assert StorageManager._get_storage_and_file_id("storage/folder/file") == (
+            "storage",
+            "folder/file",
+        )
+
     def test_first_configured_is_default(self) -> None:
         StorageManager.add_storage("first", get_dummy_container("first"))
         StorageManager.add_storage("second", get_dummy_container("second"))
