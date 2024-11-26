@@ -54,7 +54,7 @@ test = [
     "python-multipart ==0.0.6",
     "sqlmodel >=0.0.11, <0.0.13",
     "fastapi >=0.92, <0.105",
-    "Flask >=2.2, <2.3",
+    "Flask >=2.2, <3.1",
     "Flask-SQLAlchemy >=3.0,<3.2"
 ]
 cov = [
