@@ -93,7 +93,7 @@ class StorageManager:
         if (
             container.driver.name == LOCAL_STORAGE_DRIVER_NAME
             and extra is not None
-            and extra.get("meta_data", None) is not None
+            and extra.get("meta_data") is not None
         ):
             """
             Libcloud local storage driver doesn't support metadata, so the metadata
