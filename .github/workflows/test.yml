@@ -49,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Dependencies
@@ -85,7 +85,7 @@ jobs:
           MINIO_SECURE: false
         run: hatch run test:run
       - name: store coverage files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: .coverage*
@@ -96,12 +96,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.10"
           cache: "pip"
       - name: get coverage files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v8
         with:
           name: coverage
       - name: Install Dependencies
