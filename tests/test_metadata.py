@@ -4,14 +4,17 @@ from libcloud.storage.types import ObjectDoesNotExistError
 from sqlalchemy_file.helpers import get_content_from_file_obj
 from sqlalchemy_file.storage import StorageManager
 
-from tests.utils import get_test_container
+
+@pytest.fixture(autouse=True)
+def sqla_storage(sqla_storage_factory):
+    """Set up the storage backend around each test."""
+    StorageManager._clear()
+    StorageManager.add_storage("test", sqla_storage_factory("test-metadata"))
+    yield
+    StorageManager.get().delete()
 
 
 class TestMetadata:
-    def setup_method(self, method) -> None:
-        StorageManager._clear()
-        StorageManager.add_storage("test", get_test_container("test-metadata"))
-
     def test_add_metadata_deprecated(self):
         with pytest.warns(DeprecationWarning, match="metadata attribute is deprecated"):
             name = "test_metadata.txt"
@@ -73,6 +76,3 @@ class TestMetadata:
         assert stored_file.filename == "unnamed"
         assert stored_file.content_type == "application/octet-stream"
         StorageManager.delete_file("test/test_metadata.txt")
-
-    def teardown_method(self, method):
-        StorageManager.get().delete()

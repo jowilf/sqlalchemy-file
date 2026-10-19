@@ -1,0 +1,90 @@
+[project]
+site_name = "SQLAlchemy File"
+site_description = "SQLAlchemy-file is a SQLAlchemy extension for attaching files to SQLAlchemy model and uploading them to various storage such as Local Storage Amazon S3, Rackspace CloudFiles, Google Storage and others using Apache Libcloud."
+site_author = "Jocelin Hounon"
+site_url = "https://jowilf.github.io/sqlalchemy-file"
+repo_name = "jowilf/sqlalchemy-file"
+repo_url = "https://github.com/jowilf/sqlalchemy-file"
+docs_dir = "docs"
+watch = ["sqlalchemy_file", "docs_src"]
+extra_css = ["stylesheets/extra.css"]
+
+nav = [
+  { "Overview" = "index.md" },
+  { "Tutorial - User Guide" = [
+    { "Quick Start" = "tutorial/quick-start.md" },
+    { "Setup your storage" = "tutorial/setup-your-storage.md" },
+    { "Using files in models" = "tutorial/using-files-in-models.md" },
+    { "Serving files" = "tutorial/serving-files.md" },
+  ] },
+  { "API Reference" = [
+    { "StorageManager" = "api/storage-manager.md" },
+    { "File" = "api/file.md" },
+    { "Types" = "api/types.md" },
+    { "Validators" = "api/validators.md" },
+    { "Processors" = "api/processors.md" },
+    { "Exceptions" = "api/exceptions.md" },
+  ] },
+  { "Changelog" = "changelog.md" },
+]
+
+[project.theme]
+features = [
+  "content.code.copy",
+  "search.suggest",
+  "search.highlight",
+  "navigation.tabs",
+  "content.tabs.link",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "material/brightness-7"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "material/brightness-4"
+toggle.name = "Switch to light mode"
+
+[project.theme.font]
+code = "Fira Code"
+
+[project.markdown_extensions.admonition]
+
+[project.markdown_extensions.pymdownx.details]
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+
+[project.markdown_extensions.pymdownx.superfences]
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+
+[project.plugins.search]
+
+[project.plugins.mkdocstrings]
+default_handler = "python"
+
+[project.plugins.mkdocstrings.handlers.python.options]
+show_root_heading = true
+show_source = false
+
+[project.extra.analytics]
+provider = "google"
+property = "G-DX31D2F61K"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/jowilf"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/twitter"
+link = "https://twitter.com/jowilf"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/linkedin"
+link = "https://www.linkedin.com/in/jocelin-hounon-2008aa139"

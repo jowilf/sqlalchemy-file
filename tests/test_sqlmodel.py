@@ -9,10 +9,6 @@ from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 from sqlmodel import Field, Session, SQLModel
 
-from tests.utils import get_test_container, get_test_engine
-
-engine = get_test_engine()
-
 
 @pytest.fixture
 def fake_content():
@@ -27,6 +23,19 @@ def fake_file(fake_content):
     return file
 
 
+@pytest.fixture(autouse=True)
+def sqla_storage(engine, sqla_storage_factory):
+    """Set up the database schema and storage backend around each test."""
+    SQLModel.metadata.create_all(engine)
+    StorageManager._clear()
+    StorageManager.add_storage("test", sqla_storage_factory("test-sqlmodel"))
+    yield
+    for obj in StorageManager.get().list_objects():
+        obj.delete()
+    StorageManager.get().delete()
+    SQLModel.metadata.drop_all(engine)
+
+
 class Attachment(SQLModel, table=True):
     __tablename__ = "attachment"
 
@@ -36,12 +45,7 @@ class Attachment(SQLModel, table=True):
 
 
 class TestSQLModel:
-    def setup_method(self, method) -> None:
-        SQLModel.metadata.create_all(engine)
-        StorageManager._clear()
-        StorageManager.add_storage("test", get_test_container("test-sqlmodel"))
-
-    def test_create_from_string(self, fake_content) -> None:
+    def test_create_from_string(self, engine, fake_content) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Create fake string", content=fake_content))
             session.commit()
@@ -51,7 +55,7 @@ class TestSQLModel:
             assert attachment.content.saved
             assert attachment.content.file.read() == fake_content.encode()
 
-    def test_create_from_bytes(self, fake_content) -> None:
+    def test_create_from_bytes(self, engine, fake_content) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(name="Create Fake bytes", content=fake_content.encode())
@@ -63,7 +67,7 @@ class TestSQLModel:
             assert attachment.content.saved
             assert attachment.content.file.read() == fake_content.encode()
 
-    def test_create_fromfile(self, fake_file, fake_content) -> None:
+    def test_create_fromfile(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Create Fake file", content=fake_file))
             session.commit()
@@ -73,7 +77,7 @@ class TestSQLModel:
             assert attachment.content.saved
             assert attachment.content.file.read() == fake_content.encode()
 
-    def test_file_is_created_when_flush(self, fake_file, fake_content) -> None:
+    def test_file_is_created_when_flush(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             attachment = Attachment(name="Create Fake file 2", content=File(fake_file))
             session.add(attachment)
@@ -82,7 +86,7 @@ class TestSQLModel:
             session.flush()
             assert attachment.content.file is not None
 
-    def test_create_rollback(self, fake_file, fake_content) -> None:
+    def test_create_rollback(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Create rollback", content=fake_file))
             session.flush()
@@ -95,7 +99,7 @@ class TestSQLModel:
             with pytest.raises(ObjectDoesNotExistError):
                 StorageManager.get().get_object(file_id)
 
-    def test_edit_existing(self, fake_file) -> None:
+    def test_edit_existing(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Editing test", content=fake_file))
             session.commit()
@@ -111,7 +115,7 @@ class TestSQLModel:
                 StorageManager.get().get_object(old_file_id)
             assert attachment.content.file.read() == b"New content"
 
-    def test_edit_existing_rollback(self, fake_file) -> None:
+    def test_edit_existing_rollback(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(name="Editing test rollback", content=b"Initial content")
@@ -132,7 +136,7 @@ class TestSQLModel:
             assert StorageManager.get().get_object(old_file_id) is not None
             assert attachment.content.file.read() == b"Initial content"
 
-    def test_delete_existing(self, fake_file) -> None:
+    def test_delete_existing(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Deleting test", content=fake_file))
             session.commit()
@@ -146,7 +150,7 @@ class TestSQLModel:
             with pytest.raises(ObjectDoesNotExistError):
                 StorageManager.get().get_object(file_id)
 
-    def test_delete_existing_rollback(self, fake_file) -> None:
+    def test_delete_existing_rollback(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Deleting rollback test", content=fake_file))
             session.commit()
@@ -159,9 +163,3 @@ class TestSQLModel:
             session.flush()
             session.rollback()
             assert StorageManager.get().get_object(file_id) is not None
-
-    def teardown_method(self, method):
-        for obj in StorageManager.get().list_objects():
-            obj.delete()
-        StorageManager.get().delete()
-        SQLModel.metadata.drop_all(engine)

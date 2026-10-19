@@ -1,8 +1,7 @@
-import typing
 from typing import Any
 
 
-class BaseFile(typing.Dict[str, Any]):
+class BaseFile(dict[str, Any]):
     """Base class for file object.
 
     It keeps information on a content related to a specific storage.
@@ -37,7 +36,7 @@ class BaseFile(typing.Dict[str, Any]):
             raise AttributeError(name)
 
     def __delitem__(self, key: str) -> None:
-        if object.__getattribute__(self, "_frozen"):
+        if getattr(self, "_frozen", False):
             raise TypeError("Already saved files are immutable")
         dict.__delitem__(self, key)
 

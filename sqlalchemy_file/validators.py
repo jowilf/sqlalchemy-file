@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING
 
 from sqlalchemy_file.exceptions import (
     AspectRatioValidationError,
@@ -39,7 +39,7 @@ class SizeValidator(Validator):
 
     Attributes:
         max_size:
-            If set, the size of the underlying file must
+            The size of the underlying file must
             be below this file size in order to be valid.
             The size of the file can be given in one of
             the following formats:
@@ -70,7 +70,7 @@ class SizeValidator(Validator):
 
     """
 
-    def __init__(self, max_size: Union[int, str] = 0) -> None:
+    def __init__(self, max_size: int | str = 0) -> None:
         super().__init__()
         self.max_size = max_size
 
@@ -106,7 +106,7 @@ class ContentTypeValidator(Validator):
 
     """
 
-    def __init__(self, allowed_content_types: Optional[List[str]] = None) -> None:
+    def __init__(self, allowed_content_types: list[str] | None = None) -> None:
         super().__init__()
         self.allowed_content_types = allowed_content_types
 
@@ -163,18 +163,20 @@ class ImageValidator(ContentTypeValidator):
 
     def __init__(
         self,
-        min_wh: Optional[Tuple[int, int]] = None,
-        max_wh: Optional[Tuple[int, int]] = None,
-        min_aspect_ratio: Optional[float] = None,
-        max_aspect_ratio: Optional[float] = None,
-        allowed_content_types: Optional[List[str]] = None,
+        min_wh: tuple[int, int] | None = None,
+        max_wh: tuple[int, int] | None = None,
+        min_aspect_ratio: float | None = None,
+        max_aspect_ratio: float | None = None,
+        allowed_content_types: list[str] | None = None,
     ):
         try:
-            from PIL import Image  # type: ignore
+            from PIL import (  # noqa: PLC0415 - Pillow is optional, imported lazily
+                Image,
+            )
         except ImportError as e:
             raise ImportError(
                 "The 'PIL' module is required for image processing, "
-                "you can install it using 'pip install Pillow'."
+                "you can install it using 'pip install sqlalchemy-file[pillow]'."
             ) from e
 
         Image.init()
@@ -183,6 +185,10 @@ class ImageValidator(ContentTypeValidator):
             if allowed_content_types is not None
             else list(Image.MIME.values())
         )
+        self.min_width: int | None
+        self.min_height: int | None
+        self.max_width: int | None
+        self.max_height: int | None
         self.min_width, self.min_height = min_wh if min_wh else (None, None)
         self.max_width, self.max_height = max_wh if max_wh else (None, None)
         self.min_aspect_ratio = min_aspect_ratio
@@ -191,10 +197,10 @@ class ImageValidator(ContentTypeValidator):
 
     def process(self, file: "File", attr_key: str) -> None:
         super().process(file, attr_key)
-        import PIL
+        import PIL  # noqa: PLC0415 - Pillow is optional, imported lazily
 
         try:
-            image = self.image.open(file.original_content)
+            image = self.image.open(file.original_content)  # ty: ignore[invalid-argument-type]
         except (PIL.UnidentifiedImageError, OSError):
             raise InvalidImageError(attr_key, "Provide valid image file")
         width, height = image.width, image.height
@@ -231,4 +237,4 @@ class ImageValidator(ContentTypeValidator):
                 f"{self.min_aspect_ratio} - {self.max_aspect_ratio}",
             )
         file.update({"width": width, "height": height})
-        file.original_content.seek(0)  # type: ignore[union-attr]
+        file.original_content.seek(0)  # ty: ignore[unresolved-attribute]

@@ -8,10 +8,20 @@ from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 from sqlalchemy_file.validators import ContentTypeValidator
 
-from tests.utils import get_test_container, get_test_engine
-
-engine = get_test_engine()
 Base = declarative_base()
+
+
+@pytest.fixture(autouse=True)
+def sqla_storage(engine, sqla_storage_factory):
+    """Set up the database schema and storage backend around each test."""
+    Base.metadata.create_all(engine)
+    StorageManager._clear()
+    StorageManager.add_storage("test", sqla_storage_factory("content-type-validator"))
+    yield
+    for obj in StorageManager.get().list_objects():
+        obj.delete()
+    StorageManager.get().delete()
+    Base.metadata.drop_all(engine)
 
 
 @pytest.fixture
@@ -60,13 +70,8 @@ class Attachment(Base):
 
 
 class TestContentTypeValidator:
-    def setup_method(self, method) -> None:
-        Base.metadata.create_all(engine)
-        StorageManager._clear()
-        StorageManager.add_storage("test", get_test_container("content-type-validator"))
-
     def test_content_type_validator(
-        self, fake_file, fake_pdf_file, fake_csv_file, fake_txt_file
+        self, engine, fake_file, fake_pdf_file, fake_csv_file, fake_txt_file
     ):
         with Session(engine) as session:
             attachment = Attachment(name="unknown file", content=fake_file)
@@ -93,9 +98,3 @@ class TestContentTypeValidator:
             session.flush()
             session.refresh(attachment)
             assert attachment.content.file is not None
-
-    def teardown_method(self, method):
-        for obj in StorageManager.get().list_objects():
-            obj.delete()
-        StorageManager.get().delete()
-        Base.metadata.drop_all(engine)

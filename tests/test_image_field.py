@@ -8,10 +8,20 @@ from sqlalchemy_file.exceptions import ContentTypeValidationError, InvalidImageE
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import ImageField
 
-from tests.utils import get_test_container, get_test_engine
-
-engine = get_test_engine()
 Base = declarative_base()
+
+
+@pytest.fixture(autouse=True)
+def sqla_storage(engine, sqla_storage_factory):
+    """Set up the database schema and storage backend around each test."""
+    Base.metadata.create_all(engine)
+    StorageManager._clear()
+    StorageManager.add_storage("test", sqla_storage_factory("test-image-field"))
+    yield
+    for obj in StorageManager.get().list_objects():
+        obj.delete()
+    StorageManager.get().delete()
+    Base.metadata.drop_all(engine)
 
 
 @pytest.fixture
@@ -60,24 +70,21 @@ class Book(Base):
 
 
 class TestImageField:
-    def setup_method(self, method) -> None:
-        Base.metadata.create_all(engine)
-        StorageManager._clear()
-        StorageManager.add_storage("test", get_test_container("test-image-field"))
-
-    def test_autovalidate_content_type(self, fake_text_file) -> None:
+    def test_autovalidate_content_type(self, engine, fake_text_file) -> None:
         with Session(engine) as session:
             session.add(Book(title="Pointless Meetings", cover=fake_text_file))
             with pytest.raises(ContentTypeValidationError):
                 session.flush()
 
-    def test_autovalidate_image(self, fake_invalid_image) -> None:
+    def test_autovalidate_image(self, engine, fake_invalid_image) -> None:
         with Session(engine) as session:
             session.add(Book(title="Pointless Meetings", cover=fake_invalid_image))
             with pytest.raises(InvalidImageError):
                 session.flush()
 
-    def test_create_image(self, fake_valid_image, fake_valid_image_content) -> None:
+    def test_create_image(
+        self, engine, fake_valid_image, fake_valid_image_content
+    ) -> None:
         with Session(engine) as session:
             session.add(Book(title="Pointless Meetings", cover=fake_valid_image))
             session.flush()
@@ -87,9 +94,3 @@ class TestImageField:
             assert book.cover.file.read() == fake_valid_image_content
             assert book.cover["width"] is not None
             assert book.cover["height"] is not None
-
-    def teardown_method(self, method):
-        for obj in StorageManager.get().list_objects():
-            obj.delete()
-        StorageManager.get().delete()
-        Base.metadata.drop_all(engine)

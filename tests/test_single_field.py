@@ -8,10 +8,20 @@ from sqlalchemy_file.file import File
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 
-from tests.utils import get_test_container, get_test_engine
-
-engine = get_test_engine()
 Base = declarative_base()
+
+
+@pytest.fixture(autouse=True)
+def sqla_storage(engine, sqla_storage_factory):
+    """Set up the database schema and storage backend around each test."""
+    Base.metadata.create_all(engine)
+    StorageManager._clear()
+    StorageManager.add_storage("test", sqla_storage_factory("test-simple-field"))
+    yield
+    for obj in StorageManager.get().list_objects():
+        obj.delete()
+    StorageManager.get().delete()
+    Base.metadata.drop_all(engine)
 
 
 @pytest.fixture
@@ -37,12 +47,7 @@ class Attachment(Base):
     article_id = Column(Integer, ForeignKey("article.id"))
 
     def __repr__(self):
-        return "<Attachment: id {} ; name: {}; content {}; article_id {}>".format(
-            self.id,
-            self.name,
-            self.content,
-            self.article_id,
-        )  # pragma: no cover
+        return f"<Attachment: id {self.id} ; name: {self.name}; content {self.content}; article_id {self.article_id}>"  # pragma: no cover
 
 
 class Article(Base):
@@ -54,25 +59,18 @@ class Article(Base):
     attachments = relationship(Attachment, cascade="all, delete-orphan")
 
     def __repr__(self):
-        return "<Article id: %s; name: %s; attachments: (%d) %s>" % (
-            self.id,
-            self.title,
-            len(self.attachments),
-            self.attachments,
+        return (
+            f"<Article id: {self.id}; name: {self.title}; "
+            f"attachments: ({len(self.attachments)}) {self.attachments}>"
         )  # pragma: no cover
 
 
 class TestSingleField:
-    def setup_method(self, method) -> None:
-        Base.metadata.create_all(engine)
-        StorageManager._clear()
-        StorageManager.add_storage("test", get_test_container("test-simple-field"))
-
     def test_python_type(self) -> None:
         field = FileField()
         assert field.python_type is File
 
-    def test_create_from_string(self, fake_content) -> None:
+    def test_create_from_string(self, engine, fake_content) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Create fake string", content=fake_content))
             session.commit()
@@ -82,7 +80,7 @@ class TestSingleField:
             assert attachment.content.saved
             assert attachment.content.file.read() == fake_content.encode()
 
-    def test_create_from_bytes(self, fake_content) -> None:
+    def test_create_from_bytes(self, engine, fake_content) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(name="Create Fake bytes", content=fake_content.encode())
@@ -94,7 +92,7 @@ class TestSingleField:
             assert attachment.content.saved
             assert attachment.content.file.read() == fake_content.encode()
 
-    def test_create_fromfile(self, fake_file, fake_content) -> None:
+    def test_create_fromfile(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Create Fake file", content=fake_file))
             session.commit()
@@ -104,7 +102,7 @@ class TestSingleField:
             assert attachment.content.saved
             assert attachment.content.file.read() == fake_content.encode()
 
-    def test_create_frompath(self, fake_file, fake_content) -> None:
+    def test_create_frompath(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -118,7 +116,7 @@ class TestSingleField:
             assert attachment.content.saved
             assert attachment.content.file.read() == fake_content.encode()
 
-    def test_file_is_created_when_flush(self, fake_file, fake_content) -> None:
+    def test_file_is_created_when_flush(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             attachment = Attachment(name="Create Fake file 2", content=File(fake_file))
             session.add(attachment)
@@ -127,7 +125,7 @@ class TestSingleField:
             session.flush()
             assert attachment.content.file is not None
 
-    def test_create_rollback(self, fake_file, fake_content) -> None:
+    def test_create_rollback(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Create rollback", content=fake_file))
             session.flush()
@@ -140,7 +138,7 @@ class TestSingleField:
             with pytest.raises(ObjectDoesNotExistError):
                 StorageManager.get().get_object(file_id)
 
-    def test_edit_existing(self, fake_file) -> None:
+    def test_edit_existing(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Editing test", content=fake_file))
             session.commit()
@@ -156,7 +154,7 @@ class TestSingleField:
                 StorageManager.get().get_object(old_file_id)
             assert attachment.content.file.read() == b"New content"
 
-    def test_edit_existing_none(self, fake_file, fake_content) -> None:
+    def test_edit_existing_none(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Testing None edit", content=None))
             session.commit()
@@ -169,7 +167,7 @@ class TestSingleField:
             session.refresh(attachment)
             assert attachment.content.file.read() == fake_content.encode()
 
-    def test_edit_existing_rollback(self, fake_file) -> None:
+    def test_edit_existing_rollback(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(name="Editing test rollback", content=b"Initial content")
@@ -190,7 +188,7 @@ class TestSingleField:
             assert StorageManager.get().get_object(old_file_id) is not None
             assert attachment.content.file.read() == b"Initial content"
 
-    def test_edit_existing_multiple_flush(self, fake_file) -> None:
+    def test_edit_existing_multiple_flush(self, engine, fake_file) -> None:
         with Session(engine) as session:
             attachment = Attachment(
                 name="Multiple flush edit", content=b"first content"
@@ -216,7 +214,7 @@ class TestSingleField:
             assert StorageManager.get().get_object(second_edit_fileid) is not None
             assert attachment.content.file.read() == b"second edit"
 
-    def test_delete_existing(self, fake_file) -> None:
+    def test_delete_existing(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Deleting test", content=fake_file))
             session.commit()
@@ -230,7 +228,7 @@ class TestSingleField:
             with pytest.raises(ObjectDoesNotExistError):
                 StorageManager.get().get_object(file_id)
 
-    def test_delete_existing_rollback(self, fake_file) -> None:
+    def test_delete_existing_rollback(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Deleting rollback test", content=fake_file))
             session.commit()
@@ -244,7 +242,7 @@ class TestSingleField:
             session.rollback()
             assert StorageManager.get().get_object(file_id) is not None
 
-    def test_relationship(self, fake_file, fake_content) -> None:
+    def test_relationship(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             article = Article(title="Great article!")
             session.add(article)
@@ -262,7 +260,7 @@ class TestSingleField:
             with pytest.raises(ObjectDoesNotExistError):
                 StorageManager.get_file(file_path)
 
-    def test_relationship_rollback(self, fake_file, fake_content) -> None:
+    def test_relationship_rollback(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             article = Article(title="Awesome article about shark!")
             session.add(article)
@@ -278,7 +276,7 @@ class TestSingleField:
             with pytest.raises(ObjectDoesNotExistError):
                 StorageManager.get_file(file_path)
 
-    def test_relationship_cascade_delete(self, fake_file, fake_content) -> None:
+    def test_relationship_cascade_delete(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             article = Article(title="Another Great article!")
             session.add(article)
@@ -298,7 +296,7 @@ class TestSingleField:
                 StorageManager.get_file(file_path)
 
     def test_relationship_cascade_delete_rollback(
-        self, fake_file, fake_content
+        self, engine, fake_file, fake_content
     ) -> None:
         with Session(engine) as session:
             article = Article(title="Another Great article for rollback!")
@@ -318,9 +316,3 @@ class TestSingleField:
             session.flush()
             session.rollback()
             assert StorageManager.get_file(file_path) is not None
-
-    def teardown_method(self, method):
-        for obj in StorageManager.get().list_objects():
-            obj.delete()
-        StorageManager.get().delete()
-        Base.metadata.drop_all(engine)

@@ -1,6 +1,7 @@
 import contextlib
 import warnings
-from typing import Any, ClassVar, Dict, Iterator, Optional, Tuple
+from collections.abc import Iterator
+from typing import Any, ClassVar
 
 from libcloud.storage.base import Container
 from libcloud.storage.types import ObjectDoesNotExistError
@@ -23,8 +24,8 @@ class StorageManager:
 
     """
 
-    _default_storage_name: ClassVar[Optional[str]] = None
-    _storages: ClassVar[Dict[str, Container]] = {}
+    _default_storage_name: ClassVar[str | None] = None
+    _storages: ClassVar[dict[str, Container]] = {}
 
     @classmethod
     def set_default(cls, name: str) -> None:
@@ -51,7 +52,7 @@ class StorageManager:
         cls._storages[name] = container
 
     @classmethod
-    def get(cls, name: Optional[str] = None) -> Container:
+    def get(cls, name: str | None = None) -> Container:
         """Gets the container instance associate to the name,
         return default if name isn't provided.
         """
@@ -67,12 +68,12 @@ class StorageManager:
     def save_file(
         cls,
         name: str,
-        content: Optional[Iterator[bytes]] = None,
-        upload_storage: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        extra: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        content_path: Optional[str] = None,
+        content: Iterator[bytes] | None = None,
+        upload_storage: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        extra: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        content_path: str | None = None,
     ) -> StoredFile:
         if content is None and content_path is None:
             raise ValueError("Either content or content_path must be specified")
@@ -80,7 +81,7 @@ class StorageManager:
             warnings.warn(
                 'metadata attribute is deprecated. Use extra={"meta_data": ...} instead',
                 DeprecationWarning,
-                stacklevel=1,
+                stacklevel=2,
             )
             extra = {
                 "meta_data": metadata,
@@ -93,7 +94,7 @@ class StorageManager:
         if (
             container.driver.name == LOCAL_STORAGE_DRIVER_NAME
             and extra is not None
-            and extra.get("meta_data", None) is not None
+            and extra.get("meta_data") is not None
         ):
             """
             Libcloud local storage driver doesn't support metadata, so the metadata
@@ -138,7 +139,7 @@ class StorageManager:
         upload_storage, file_id = cls._get_storage_and_file_id(path)
         obj = StorageManager.get(upload_storage).get_object(file_id)
         if obj.driver.name == LOCAL_STORAGE_DRIVER_NAME:
-            """Try deleting associated metadata file"""
+            # Try deleting the associated metadata sidecar.
             with contextlib.suppress(ObjectDoesNotExistError):
                 obj.container.get_object(f"{obj.name}.metadata.json").delete()
 
@@ -151,7 +152,7 @@ class StorageManager:
         cls._storages = {}
 
     @classmethod
-    def _get_storage_and_file_id(cls, path: str) -> Tuple[str, str]:
+    def _get_storage_and_file_id(cls, path: str) -> tuple[str, str]:
         """Extract the storage name and file_id from the path.
 
         The path is expected to be `storage_name/file_id`.

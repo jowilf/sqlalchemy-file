@@ -1,28 +1,27 @@
-import typing
-from typing import Any, List, Tuple, TypeVar, no_type_check
+from typing import Any, TypeVar, no_type_check
 
 from sqlalchemy.ext.mutable import Mutable
 
 T = TypeVar("T", bound=Any)
 
 
-class MutableList(Mutable, typing.List[T]):
+class MutableList(Mutable, list[T]):
     """A list type that implements :class:`Mutable`.
 
     The :class:`MutableList` object implements a list that will
     emit change events to the underlying mapping when the contents of
     the list are altered, including when values are added or removed.
 
-    This is a replication of default Mutablelist provide by SQLAlchemy.
-    The difference here is the properties _removed which keep every element
-    removed from the list in order to be able to delete them after commit
-    and keep them when session rolled back.
+    A replication of the default ``MutableList`` provided by SQLAlchemy.
+    The difference is the ``_removed`` property, which keeps every element
+    removed from the list so it can be deleted after commit and preserved
+    when the session is rolled back.
 
     """
 
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._removed: List[T] = []
+        self._removed: list[T] = []
 
     @classmethod
     def coerce(cls, key: Any, value: Any) -> Any:
@@ -39,7 +38,7 @@ class MutableList(Mutable, typing.List[T]):
 
     # needed for backwards compatibility with
     # older pickles
-    def __getstate__(self) -> Tuple[List[T], List[T]]:  # pragma: no cover
+    def __getstate__(self) -> tuple[list[T], list[T]]:  # pragma: no cover
         return list(self), self._removed
 
     def __setstate__(self, state: Any) -> None:  # pragma: no cover
@@ -60,7 +59,7 @@ class MutableList(Mutable, typing.List[T]):
         self.changed()
         self._removed.extend(old_value)
 
-    def pop(self, *arg) -> "T":  # type: ignore
+    def pop(self, *arg) -> "T":
         result = list.pop(self, *arg)
         self.changed()
         self._removed.append(result)
@@ -79,6 +78,12 @@ class MutableList(Mutable, typing.List[T]):
         self.extend(x)
         return self
 
+    @no_type_check
+    def __imul__(self, x):
+        list.__imul__(self, x)
+        self.changed()
+        return self
+
     def insert(self, i: Any, x: Any) -> None:
         list.insert(self, i, x)
         self.changed()
@@ -90,7 +95,7 @@ class MutableList(Mutable, typing.List[T]):
 
     def clear(self) -> None:
         self._removed.extend(self)
-        list.clear(self)  # type: ignore
+        list.clear(self)
         self.changed()
 
     def sort(self, **kw: Any) -> None:
@@ -98,5 +103,5 @@ class MutableList(Mutable, typing.List[T]):
         self.changed()
 
     def reverse(self) -> None:
-        list.reverse(self)  # type: ignore
+        list.reverse(self)
         self.changed()

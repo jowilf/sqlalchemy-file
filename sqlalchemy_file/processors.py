@@ -1,7 +1,8 @@
+import copy
 import mimetypes
 from abc import abstractmethod
 from tempfile import SpooledTemporaryFile
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING
 
 from sqlalchemy_file.helpers import INMEMORY_FILESIZE
 
@@ -18,7 +19,7 @@ class Processor:
 
     @abstractmethod
     def process(
-        self, file: "File", upload_storage: Optional[str] = None
+        self, file: "File", upload_storage: str | None = None
     ) -> None:  # pragma: no cover
         """Should be overridden in inherited class
         Parameters:
@@ -87,46 +88,59 @@ class ThumbnailGenerator(Processor):
 
     def __init__(
         self,
-        thumbnail_size: Tuple[int, int] = (128, 128),
+        thumbnail_size: tuple[int, int] = (128, 128),
         thumbnail_format: str = "PNG",
     ) -> None:
         super().__init__()
         self.thumbnail_size = thumbnail_size
         self.thumbnail_format = thumbnail_format
 
-    def process(self, file: "File", upload_storage: Optional[str] = None) -> None:
-        from PIL import Image  # type: ignore
+    def process(self, file: "File", upload_storage: str | None = None) -> None:
+        try:
+            from PIL import Image  # noqa: PLC0415 - Pillow is optional, imported lazily
+        except ImportError as e:
+            raise ImportError(
+                "The 'PIL' module is required for image processing, "
+                "you can install it using 'pip install sqlalchemy-file[pillow]'."
+            ) from e
 
         content = file.original_content
-        img = Image.open(content)
+        img = Image.open(content)  # ty: ignore[invalid-argument-type]
+        # Do not call img.close(): recent Pillow versions also close the
+        # wrapped stream, which is owned by the caller.
         thumbnail = img.copy()
         thumbnail.thumbnail(self.thumbnail_size)
-        output = SpooledTemporaryFile(INMEMORY_FILESIZE)
-        thumbnail.save(output, self.thumbnail_format)
-        output.seek(0)
-        width, height, content_type = (
-            thumbnail.width,
-            thumbnail.height,
-            f"image/{self.thumbnail_format}".lower(),
-        )
-        ext = mimetypes.guess_extension(content_type)
-        extra = file.get("extra", {})
-        metadata = extra.get("meta_data", {})
-        metadata.update(
-            {
-                "filename": file["filename"] + f".thumbnail{width}x{height}{ext}",
-                "content_type": content_type,
-                "width": width,
-                "height": height,
-            }
-        )
-        extra.update({"content_type": content_type, "meta_data": metadata})
-        stored_file = file.store_content(
-            output,
-            upload_storage=upload_storage,
-            extra=extra,
-            headers=file.get("headers", None),
-        )
+        output = SpooledTemporaryFile(INMEMORY_FILESIZE)  # noqa: SIM115
+        try:
+            thumbnail.save(output, self.thumbnail_format)
+            output.seek(0)
+            width, height, content_type = (
+                thumbnail.width,
+                thumbnail.height,
+                f"image/{self.thumbnail_format}".lower(),
+            )
+            ext = mimetypes.guess_extension(content_type) or ""
+            # Deep copy `extra` so thumbnail metadata does not overwrite
+            # the original file's.
+            extra = copy.deepcopy(file.get("extra", None) or {})
+            metadata = dict(extra.get("meta_data", None) or {})
+            metadata.update(
+                {
+                    "filename": file["filename"] + f".thumbnail{width}x{height}{ext}",
+                    "content_type": content_type,
+                    "width": width,
+                    "height": height,
+                }
+            )
+            extra.update({"content_type": content_type, "meta_data": metadata})
+            stored_file = file.store_content(
+                output,
+                upload_storage=upload_storage,
+                extra=extra,
+                headers=file.get("headers", None),
+            )
+        finally:
+            output.close()
         file.update(
             {
                 "thumbnail": {

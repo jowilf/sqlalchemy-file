@@ -14,15 +14,8 @@ jobs:
 
     steps:
       - uses: "actions/checkout@v4"
-      - uses: "actions/setup-python@v4"
-        with:
-          python-version: 3.9
-      - name: Install Dependencies
-        run: pip install hatch
+      - uses: "astral-sh/setup-uv@v10"
       - name: Build
-        run: hatch build
+        run: uv build
       - name: Publish
-        env:
-          HATCH_INDEX_USER: __token__
-          HATCH_INDEX_AUTH: ${{ secrets.PYPI_TOKEN }}
-        run: hatch publish
+        run: uv publish --token ${{ secrets.PYPI_TOKEN }}

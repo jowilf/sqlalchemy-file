@@ -7,9 +7,8 @@ from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 
 from tests import DummyFile
-from tests.utils import get_dummy_container, get_test_engine
+from tests.utils import get_dummy_container
 
-engine = get_test_engine()
 Base = declarative_base()
 
 
@@ -33,13 +32,13 @@ class Attachment(Base):
     )
 
 
-@pytest.fixture
-def engine() -> Engine:
-    engine = get_test_engine()
+@pytest.fixture(autouse=True)
+def sqla_storage(engine):
+    """Set up the database schema and the dummy storage around each test."""
     Base.metadata.create_all(engine)
     StorageManager._clear()
     StorageManager.add_storage("test", get_dummy_container("test-extra-and-headers"))
-    yield engine
+    yield
     StorageManager._clear()
     Base.metadata.drop_all(engine)
 
