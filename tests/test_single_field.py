@@ -37,12 +37,7 @@ class Attachment(Base):
     article_id = Column(Integer, ForeignKey("article.id"))
 
     def __repr__(self):
-        return "<Attachment: id {} ; name: {}; content {}; article_id {}>".format(
-            self.id,
-            self.name,
-            self.content,
-            self.article_id,
-        )  # pragma: no cover
+        return f"<Attachment: id {self.id} ; name: {self.name}; content {self.content}; article_id {self.article_id}>"  # pragma: no cover
 
 
 class Article(Base):
