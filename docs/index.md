@@ -125,10 +125,11 @@ with Session(engine) as session, open("./example.txt", "rb") as local_file:
     session.add(Attachment(name="attachment4", content=file))
 
     # from a File object specifying a content path
-    session.add(Attachment(name="attachment5", content=File(content_path="./example.txt")))
+    session.add(
+        Attachment(name="attachment5", content=File(content_path="./example.txt"))
+    )
 
     session.commit()
-
 ```
 
 ## Related projects and inspirations

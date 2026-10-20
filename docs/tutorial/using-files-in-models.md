@@ -18,6 +18,7 @@ You can use two Column type in your model.
 
     Base = declarative_base()
 
+
     class Attachment(Base):
         __tablename__ = "attachment"
 
@@ -96,12 +97,14 @@ through the `.file` property.
 ```python
 with Session(engine) as session:
     attachment = session.execute(
-            select(Attachment).where(Attachment.name == "attachment3")
-        ).scalar_one()
-    assert attachment.content.saved # saved is True for saved file
-    assert attachment.content.file.read() == b"Hello world" # access file content
-    assert attachment.content["filename"] is not None # `unnamed` when no filename are provided
-    assert attachment.content["file_id"] is not None # uuid v4
+        select(Attachment).where(Attachment.name == "attachment3")
+    ).scalar_one()
+    assert attachment.content.saved  # saved is True for saved file
+    assert attachment.content.file.read() == b"Hello world"  # access file content
+    assert (
+        attachment.content["filename"] is not None
+    )  # `unnamed` when no filename are provided
+    assert attachment.content["file_id"] is not None  # uuid v4
     assert attachment.content["upload_storage"] == "default"
     assert attachment.content["content_type"] is not None
     assert attachment.content["uploaded_at"] is not None
@@ -115,7 +118,11 @@ the default attributes used by [File][sqlalchemy_file.file.File] object internal
 
 !!! Example
     ```python
-    content = File(open("./example.txt", "rb"),custom_key1="custom_value1", custom_key2="custom_value2")
+    content = File(
+        open("./example.txt", "rb"),
+        custom_key1="custom_value1",
+        custom_key2="custom_value2",
+    )
     content["custom_key3"] = "custom_value3"
     attachment = Attachment(name="Dummy", content=content)
 
@@ -141,7 +148,6 @@ They are two ways to add `extra` and `headers` with *sqlalchemy-file*
 - on field declaration (shared by all associated files)
 
 ```python
-
 class Attachment(Base):
     __tablename__ = "attachment"
 
@@ -160,7 +166,6 @@ class Attachment(Base):
             },
         )
     )
-
 ```
 
 - in your [File][sqlalchemy_file.file.File] object
@@ -171,9 +176,9 @@ class Attachment(Base):
 ```python hl_lines="4"
 with Session(engine) as session:
     attachment = Attachment(
-            name="Public document",
-            content=File(DummyFile(), extra={"acl": "public-read"}),
-        )
+        name="Public document",
+        content=File(DummyFile(), extra={"acl": "public-read"}),
+    )
     session.add(attachment)
     session.commit()
     session.refresh(attachment)
@@ -245,7 +250,6 @@ class AttachmentMinIO(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
     name = Column(String(50), unique=True)
     content_min_io = Column(FileField(upload_storage="min_io_storage"))
-
 ```
 
 ## Validators
