@@ -1,6 +1,9 @@
 *.pyc
 env*
 .mypy_cache
+.ty
+.zensical
+.ruff_cache
 .vscode
 .idea
 poetry.lock

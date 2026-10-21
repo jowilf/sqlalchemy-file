@@ -1,6 +1,6 @@
 import contextlib
 import os
-from typing import Generator, List, Optional, Union
+from collections.abc import Generator
 
 import uvicorn
 from libcloud.storage.drivers.local import LocalStorageDriver
@@ -44,24 +44,24 @@ StorageManager.add_storage("category", container)
 
 class Thumbnail(BaseModel):
     path: str
-    url: Optional[str]
+    url: str | None
 
 
 class FileInfo(BaseModel):
     filename: str
     content_type: str
     path: str
-    url: Optional[str]
+    url: str | None
     thumbnail: Thumbnail
 
 
 class CategoryBase(SQLModel):
-    id: Optional[int] = Field(None, primary_key=True)
+    id: int | None = Field(None, primary_key=True)
     name: str = Field(None, min_length=3, max_length=100)
 
 
 class Category(CategoryBase, table=True):
-    image: Union[File, UploadFile, None] = Field(
+    image: File | UploadFile | None = Field(
         sa_column=Column(
             ImageField(
                 upload_storage="category",
@@ -73,12 +73,12 @@ class Category(CategoryBase, table=True):
 
 
 class CategoryOut(CategoryBase):
-    image: Optional[FileInfo]
+    image: FileInfo | None
 
 
 def category_form(
     name: str = Form(..., min_length=3),
-    image: Optional[UploadFile] = FormFile(None),
+    image: UploadFile | None = FormFile(None),
 ):
     return Category(name=name, image=image)
 
@@ -97,7 +97,7 @@ def get_session() -> Generator[Session, None, None]:
         session.close()
 
 
-@app.get("/categories", response_model=List[CategoryOut])
+@app.get("/categories", response_model=list[CategoryOut])
 async def get_all(session: Session = Depends(get_session)):
     return session.execute(select(Category)).scalars().all()
 

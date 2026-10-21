@@ -7,7 +7,7 @@ name = "sqlalchemy-file"
 description = "SQLAlchemy-file is a SQLAlchemy extension for attaching files to SQLAlchemy model and uploading them to various storage."
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.7"
+requires-python = ">=3.11"
 keywords = ["sqlalchemy", "sqlmodel", "file-upload", "apache-libcloud"]
 authors = [
     { name = "Jocelin Hounon", email = "hounonj@gmail.com" },
@@ -21,17 +21,15 @@ classifiers = [
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Topic :: Software Development :: Libraries :: Python Modules',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
     "Topic :: Database",
     "Topic :: Database :: Database Engines/Servers",
 ]
 dependencies = [
-    "SQLAlchemy >=1.4, <2.1",
-    "apache-libcloud >=3.6, <3.9",
+    "SQLAlchemy >=2.0",
+    "apache-libcloud >=3.6",
 ]
 dynamic = ["version"]
 
@@ -42,94 +40,108 @@ Repository = "https://github.com/jowilf/sqlalchemy-file"
 Changelog = "https://jowilf.github.io/sqlalchemy-file/changelog/"
 
 [project.optional-dependencies]
-test = [
-    "pytest >=7.2.0, <7.5.0",
-    "mypy ==1.5.1",
-    "ruff ==0.0.292",
-    "black ==23.9.1",
-    "fasteners ==0.19",
-    "PyMySQL[rsa] >=1.0.2, <1.2.0",
-    "psycopg2-binary >=2.9.5, <3.0.0",
-    "Pillow >=9.4.0, <10.1.0",
-    "python-multipart ==0.0.6",
-    "sqlmodel >=0.0.11, <0.0.13",
-    "fastapi >=0.92, <0.105",
-    "Flask >=2.2, <2.3",
-    "Flask-SQLAlchemy >=3.0,<3.2"
+# Optional feature dependencies. Install with e.g.
+# `pip install sqlalchemy-file[local,pillow]`.
+pillow = [
+    # Required by ImageField, ImageValidator and ThumbnailGenerator.
+    "Pillow >=9.4",
 ]
-cov = [
-    "coverage[toml] >=7.0.0, <7.4.0"
+local = [
+    # Required by libcloud's LocalStorageDriver backend.
+    "fasteners >=0.15",
 ]
-doc = [
-    "mkdocs-material >=9.0.0, <10.0.0",
-    "mkdocstrings[python] >=0.19.0, <0.24.0"
+all = [
+    "Pillow >=9.4",
+    "fasteners >=0.15",
 ]
+# Dev tooling in PEP 735 groups, managed by uv. Tasks in [tool.poe.tasks];
+# run with `uv run poe <task>`.
+[dependency-groups]
 dev = [
-    "pre-commit >=2.20.0, <4.0.0",
-    "uvicorn >=0.20.0, <0.24.0",
+    "poethepoet >=0.30.0, <0.49.0",
+    "pre-commit >=2.20.0",
+    "uvicorn >=0.20.0",
 ]
-
-[tool.hatch.envs.default]
-features = [
-    "test",
-    "cov",
-    "dev"
-]
-[tool.hatch.envs.default.scripts]
-format = [
-    "ruff sqlalchemy_file tests --fix",
-    "black ."
-]
-
-[tool.hatch.envs.test]
-features = [
-    "test",
-    "cov",
-]
-[tool.hatch.envs.test.scripts]
 lint = [
-    "mypy sqlalchemy_file",
-    "ruff sqlalchemy_file tests",
-    "black . --check"
+    "ruff ==0.17.1",
+    "ty ==0.0.89",
 ]
-run = "coverage run -m pytest tests"
+test = [
+    "pytest >=8",
+    "testcontainers[mysql,postgres,minio] >=4.6",
+    "fasteners >=0.15",
+    "PyMySQL >=1.0.2",
+    "psycopg2-binary >=2.9.5, <3.0.0",
+    "Pillow >=9.4",
+    "python-multipart >=0.0.6",
+    "sqlmodel >=0.0.11",
+    "fastapi >=0.92",
+    "Flask >=2.2",
+    "Flask-SQLAlchemy >=3.0",
+    { include-group = "lint" },
+]
 cov = [
-    "coverage combine",
-    "coverage report --show-missing",
-    "coverage xml"
+    "coverage[toml] >=7.4.0",
+]
+docs = [
+    "mkdocstrings[python] >=0.27.0",
+    "zensical ==0.0.71",
+]
+# Mutually exclusive SQLA test environments, see [tool.uv] conflicts.
+sqla20 = [
+    "SQLAlchemy >=2.0, <2.1",
+]
+sqla21 = [
+    "SQLAlchemy >=2.1",
 ]
 
-[[tool.hatch.envs.test.matrix]]
-sqla_version = ["1.4.x", "2.0.x"]
+[tool.uv]
+conflicts = [
+    [
+        { group = "sqla20" },
+        { group = "sqla21" },
+    ],
+]
+# sqla21 default so plain `uv sync` tests the 2.1 series. sqla20 is opt-in;
+# conflicting groups require `uv run --no-default-groups --group sqla20 ...`.
+default-groups = ["dev", "lint", "test", "cov", "docs", "sqla21"]
 
-[tool.hatch.envs.test.overrides]
-matrix.sqla_version.dependencies = [
-    { value = "SQLAlchemy >=2.0, <2.1", if = ["2.0.x"] },
-    { value = "SQLAlchemy >=1.4, <1.5", if = ["1.4.x"] },
-]
+[tool.poe.tasks]
+# Code quality
+format = ["_ruff-fix", "_ruff-format"]
+lint = ["_ty", "_ruff-check", "_ruff-format-check"]
+_ty = "ty check sqlalchemy_file"
+_ruff-check = "ruff check sqlalchemy_file tests"
+_ruff-fix = "ruff check sqlalchemy_file tests --fix"
+_ruff-format = "ruff format sqlalchemy_file tests docs_src examples"
+_ruff-format-check = "ruff format sqlalchemy_file tests docs_src examples --check"
 
-[tool.hatch.envs.cov]
-features = [
-    "cov",
-]
-[tool.hatch.envs.cov.scripts]
-report = [
-    "coverage combine",
-    "coverage report --show-missing",
-    "coverage xml"
-]
+# Tests (sqla tasks re-sync their pinned group)
+test = "coverage run -m pytest tests"
+test-sqla20 = "uv run --no-default-groups --group sqla20 --group test --group cov coverage run -m pytest tests"
+test-sqla21 = "uv run --group sqla21 coverage run -m pytest tests"
+test-matrix = ["test-sqla20", "test-sqla21"]
 
-[tool.hatch.envs.docs]
-features = [
-    "doc",
-]
-[tool.hatch.envs.docs.scripts]
-serve = "mkdocs serve -a localhost:8080"
-build = "mkdocs build"
-deploy = "mkdocs gh-deploy --force"
+# Coverage
+cov-report = ["_cov-combine", "_cov-report", "_cov-xml"]
+_cov-combine = "coverage combine"
+_cov-report = "coverage report --show-missing"
+_cov-xml = "coverage xml"
+
+# Docs
+docs-serve = "zensical serve -a localhost:8080"
+docs-build = "zensical build"
+
+# Clean
+clean = "rm -rf .coverage .coverage.* coverage.xml .pytest_cache .ruff_cache .mypy_cache site .zensical"
 
 [tool.hatch.version]
 path = "sqlalchemy_file/__init__.py"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:datetime.datetime.utcnow\\(\\) is deprecated:DeprecationWarning",
+]
 
 [tool.coverage.report]
 fail_under = 99
@@ -146,6 +158,9 @@ command_line = "-m pytest"
 source = ["sqlalchemy_file", "tests"]
 
 [tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
 select = [
     "B", # flake8-bugbear
     "C4", # flake8-comprehensions
@@ -168,21 +183,25 @@ select = [
     "W", # pycodestyle warnings
 ]
 ignore = ["E501", "B904", "B008", "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107", "D205"]
-target-version = "py38"
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-third-party = ["sqlalchemy_file"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "docs_src/**" = ["N999"]
+# Test fixtures intentionally keep temp files open for the test body.
+"tests/**" = ["SIM115"]
 
-[tool.mypy]
-strict = true
-warn_unused_ignores = false
+[tool.ty.src]
+include = ["sqlalchemy_file"]
+
+[tool.ty.rules]
+unused-ignore-comment = "error"
+unused-type-ignore-comment = "error"
 
 [tool.hatch.build.targets.wheel]
 [tool.hatch.build.targets.sdist]

@@ -12,10 +12,20 @@ from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import ImageField
 from sqlalchemy_file.validators import ImageValidator
 
-from tests.utils import get_test_container, get_test_engine
-
-engine = get_test_engine()
 Base = declarative_base()
+
+
+@pytest.fixture(autouse=True)
+def sqla_storage(engine, sqla_storage_factory):
+    """Set up the database schema and storage backend around each test."""
+    Base.metadata.create_all(engine)
+    StorageManager._clear()
+    StorageManager.add_storage("test", sqla_storage_factory("test-image-validator"))
+    yield
+    for obj in StorageManager.get().list_objects():
+        obj.delete()
+    StorageManager.get().delete()
+    Base.metadata.drop_all(engine)
 
 
 @pytest.fixture
@@ -126,12 +136,7 @@ class Book(Base):
 
 
 class TestImageValidator:
-    def setup_method(self, method) -> None:
-        Base.metadata.create_all(engine)
-        StorageManager._clear()
-        StorageManager.add_storage("test", get_test_container("test-image-validator"))
-
-    def test_min_width_validation(self, fake_image_low_width) -> None:
+    def test_min_width_validation(self, engine, fake_image_low_width) -> None:
         with Session(engine) as session:
             session.add(Book(title="Pointless Meetings", cover=fake_image_low_width))
             with pytest.raises(
@@ -140,16 +145,16 @@ class TestImageValidator:
             ):
                 session.flush()
 
-    def test_min_height_validation(self, fake_image_low_height) -> None:
+    def test_min_height_validation(self, engine, fake_image_low_height) -> None:
         with Session(engine) as session:
             session.add(Book(title="Pointless Meetings", cover=fake_image_low_height))
             with pytest.raises(
                 DimensionValidationError,
-                match="Minimum allowed height is: 10, but 7 is given.",
+                match="Minimum allowed height is: 10, but 7 is given\\.",
             ):
                 session.flush()
 
-    def test_max_width_validation(self, fake_image_huge_width) -> None:
+    def test_max_width_validation(self, engine, fake_image_huge_width) -> None:
         with Session(engine) as session:
             session.add(Book(title="Pointless Meetings", cover=fake_image_huge_width))
             with pytest.raises(
@@ -158,16 +163,16 @@ class TestImageValidator:
             ):
                 session.flush()
 
-    def test_max_height_validation(self, fake_image_huge_height) -> None:
+    def test_max_height_validation(self, engine, fake_image_huge_height) -> None:
         with Session(engine) as session:
             session.add(Book(title="Pointless Meetings", cover=fake_image_huge_height))
             with pytest.raises(
                 DimensionValidationError,
-                match="Maximum allowed height is: 15, but 17 is given.",
+                match="Maximum allowed height is: 15, but 17 is given\\.",
             ):
                 session.flush()
 
-    def test_invalid_aspect_ratio(self, fake_image_invalid_ratio) -> None:
+    def test_invalid_aspect_ratio(self, engine, fake_image_invalid_ratio) -> None:
         with Session(engine) as session:
             session.add(
                 Book(title="Pointless Meetings", cover=fake_image_invalid_ratio)
@@ -175,7 +180,7 @@ class TestImageValidator:
             with pytest.raises(AspectRatioValidationError):
                 session.flush()
 
-    def test_valid_image(self, fake_valid_image) -> None:
+    def test_valid_image(self, engine, fake_valid_image) -> None:
         with Session(engine) as session:
             session.add(Book(title="Pointless Meetings", cover=fake_valid_image))
             session.flush()
@@ -183,9 +188,3 @@ class TestImageValidator:
                 select(Book).where(Book.title == "Pointless Meetings")
             ).scalar_one()
             assert book.cover.file is not None
-
-    def teardown_method(self, method):
-        for obj in StorageManager.get().list_objects():
-            obj.delete()
-        StorageManager.get().delete()
-        Base.metadata.drop_all(engine)

@@ -1,8 +1,9 @@
+import copy
 import os.path
 import uuid
 import warnings
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy_file.base import BaseFile
 from sqlalchemy_file.helpers import (
@@ -41,10 +42,10 @@ class File(BaseFile):
     def __init__(
         self,
         content: Any = None,
-        filename: Optional[str] = None,
-        content_type: Optional[str] = None,
-        content_path: Optional[str] = None,
-        **kwargs: Dict[str, Any],
+        filename: str | None = None,
+        content_type: str | None = None,
+        content_path: str | None = None,
+        **kwargs: Any,
     ) -> None:
         if content is None and content_path is None:
             raise ValueError("Either content or content_path must be specified")
@@ -77,24 +78,26 @@ class File(BaseFile):
             )
             self._thaw()
 
-    def apply_validators(self, validators: List[Validator], key: str = "") -> None:
+    def apply_validators(self, validators: list[Validator], key: str = "") -> None:
         """Apply validators to current file."""
         for validator in validators:
             validator.process(self, key)
 
     def apply_processors(
         self,
-        processors: List[Processor],
-        upload_storage: Optional[str] = None,
+        processors: list[Processor],
+        upload_storage: str | None = None,
     ) -> None:
         """Apply processors to current file."""
         for processor in processors:
             processor.process(self, upload_storage)
         self._freeze()
 
-    def save_to_storage(self, upload_storage: Optional[str] = None) -> None:
+    def save_to_storage(self, upload_storage: str | None = None) -> None:
         """Save current file into provided `upload_storage`."""
-        extra = self.get("extra", {})
+        # Deep copy `extra`: column-level config must not leak between files.
+        extra = copy.deepcopy(self.get("extra", None) or {})
+
         extra.update({"content_type": self.content_type})
 
         metadata = self.get("metadata", None)
@@ -102,7 +105,7 @@ class File(BaseFile):
             warnings.warn(
                 'metadata attribute is deprecated. Use extra={"meta_data": ...} instead',
                 DeprecationWarning,
-                stacklevel=1,
+                stacklevel=2,
             )
             extra.update({"meta_data": metadata})
 
@@ -112,6 +115,7 @@ class File(BaseFile):
         extra["meta_data"].update(
             {"filename": self.filename, "content_type": self.content_type}
         )
+        self["extra"] = extra
         stored_file = self.store_content(
             self.original_content,
             upload_storage,
@@ -121,7 +125,7 @@ class File(BaseFile):
         )
         self["file_id"] = stored_file.name
         self["upload_storage"] = upload_storage
-        self["uploaded_at"] = datetime.utcnow().isoformat()
+        self["uploaded_at"] = datetime.now(UTC).isoformat()
         self["path"] = f"{upload_storage}/{stored_file.name}"
         self["url"] = stored_file.get_cdn_url()
         self["saved"] = True
@@ -129,18 +133,19 @@ class File(BaseFile):
     def store_content(
         self,
         content: Any,
-        upload_storage: Optional[str] = None,
-        name: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        extra: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        content_path: Optional[str] = None,
+        upload_storage: str | None = None,
+        name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        extra: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        content_path: str | None = None,
     ) -> StoredFile:
         """Store content into provided `upload_storage`
         with additional `metadata`. Can be used by processors
         to store additional files.
         """
         name = name or str(uuid.uuid4())
+        upload_storage = upload_storage or StorageManager.get_default()
         stored_file = StorageManager.save_file(
             name=name,
             content=content,
@@ -153,7 +158,7 @@ class File(BaseFile):
         self["files"].append(f"{upload_storage}/{name}")
         return stored_file
 
-    def encode(self) -> Dict[str, Any]:
+    def encode(self) -> dict[str, Any]:
         return {k: v for k, v in self.items() if k not in ["original_content"]}
 
     @classmethod

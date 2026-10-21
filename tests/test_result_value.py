@@ -7,10 +7,19 @@ from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 
 from tests import DummyFile
-from tests.utils import get_dummy_container, get_test_engine
+from tests.utils import get_dummy_container
 
-engine = get_test_engine()
 Base = declarative_base()
+
+
+@pytest.fixture(autouse=True)
+def sqla_storage(engine):
+    """Set up the database schema and the dummy storage around each test."""
+    Base.metadata.create_all(engine)
+    StorageManager._clear()
+    StorageManager.add_storage("test", get_dummy_container("test-result-value"))
+    yield
+    Base.metadata.drop_all(engine)
 
 
 class DictLikeCheckerProcessor(Processor):
@@ -33,21 +42,11 @@ class Attachment(Base):
     )
 
     def __repr__(self):
-        return "<Attachment: id {} ; name: {}; content {}; multiple_content {}>".format(
-            self.id,
-            self.name,
-            self.content,
-            self.multiple_content,
-        )  # pragma: no cover
+        return f"<Attachment: id {self.id} ; name: {self.name}; content {self.content}; multiple_content {self.multiple_content}>"  # pragma: no cover
 
 
 class TestResultValue:
-    def setup_method(self, method) -> None:
-        Base.metadata.create_all(engine)
-        StorageManager._clear()
-        StorageManager.add_storage("test", get_dummy_container("test-result-value"))
-
-    def test_single_column_is_dictlike(self) -> None:
+    def test_single_column_is_dictlike(self, engine) -> None:
         with Session(engine) as session:
             attachment = Attachment(name="Single content", content=DummyFile())
             session.add(attachment)
@@ -58,7 +57,7 @@ class TestResultValue:
             assert attachment.content.dummy_attr == "Dummy data"
             assert "del_attr" not in attachment.content
 
-    def test_file_custom_attributes(self) -> None:
+    def test_file_custom_attributes(self, engine) -> None:
         with Session(engine) as session:
             content = File(
                 DummyFile(), custom_key1="custom_value1", custom_key2="custom_value2"
@@ -74,10 +73,11 @@ class TestResultValue:
             assert attachment.content.custom_key1 == "custom_value1"
             assert attachment.content.custom_key2 == "custom_value2"
 
-    def test_file_additional_metadata_deprecated(self) -> None:
-        with pytest.warns(
-            DeprecationWarning, match="metadata attribute is deprecated"
-        ), Session(engine) as session:
+    def test_file_additional_metadata_deprecated(self, engine) -> None:
+        with (
+            pytest.warns(DeprecationWarning, match="metadata attribute is deprecated"),
+            Session(engine) as session,
+        ):
             metadata = {"key1": "val1", "key2": "val2"}
             content = File(DummyFile(), metadata=metadata)
             attachment = Attachment(name="Additional metadata", content=content)
@@ -89,7 +89,7 @@ class TestResultValue:
             assert attachment.content.file.object.meta_data["key1"] == "val1"
             assert attachment.content.file.object.meta_data["key2"] == "val2"
 
-    def test_multiple_column_is_list_of_dictlike(self) -> None:
+    def test_multiple_column_is_list_of_dictlike(self, engine) -> None:
         with Session(engine) as session:
             attachment = Attachment(
                 name="Multiple content",
@@ -105,7 +105,7 @@ class TestResultValue:
                 assert content.dummy_attr == "Dummy data"
                 assert "del_attr" not in content
 
-    def test_column_cannot_edit_after_save(self) -> None:
+    def test_column_cannot_edit_after_save(self, engine) -> None:
         with Session(engine) as session:
             attachment = Attachment(name="Single content", content=DummyFile())
             session.add(attachment)
@@ -120,7 +120,7 @@ class TestResultValue:
             with pytest.raises(TypeError):
                 delattr(attachment.content, "dummy_attr")
 
-    def test_multiple_column_cannot_edit_after_save(self) -> None:
+    def test_multiple_column_cannot_edit_after_save(self, engine) -> None:
         with Session(engine) as session:
             attachment = Attachment(
                 name="Multiple content Freeze",
@@ -139,6 +139,3 @@ class TestResultValue:
                     del content["dummy_attr"]
                 with pytest.raises(TypeError):
                     delattr(content, "dummy_attr")
-
-    def teardown_method(self, method):
-        Base.metadata.drop_all(engine)

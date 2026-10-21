@@ -9,10 +9,20 @@ from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 from sqlalchemy_file.validators import SizeValidator
 
-from tests.utils import get_test_container, get_test_engine
-
-engine = get_test_engine()
 Base = declarative_base()
+
+
+@pytest.fixture(autouse=True)
+def sqla_storage(engine, sqla_storage_factory):
+    """Set up the database schema and storage backend around each test."""
+    Base.metadata.create_all(engine)
+    StorageManager._clear()
+    StorageManager.add_storage("test", sqla_storage_factory("test-size-validator"))
+    yield
+    for obj in StorageManager.get().list_objects():
+        obj.delete()
+    StorageManager.get().delete()
+    Base.metadata.drop_all(engine)
 
 
 @pytest.fixture
@@ -43,11 +53,6 @@ class Attachment(Base):
 
 
 class TestSizeValidator:
-    def setup_method(self, method) -> None:
-        Base.metadata.create_all(engine)
-        StorageManager._clear()
-        StorageManager.add_storage("test", get_test_container("test-size-validator"))
-
     def test_size_converter(self) -> None:
         assert convert_size(100) == 100
         assert convert_size("3k") == 3 * 1000
@@ -60,13 +65,13 @@ class TestSizeValidator:
         with pytest.raises(ValueError):
             convert_size("25V")
 
-    def test_size_validator_large_file(self, fake_huge_file) -> None:
+    def test_size_validator_large_file(self, engine, fake_huge_file) -> None:
         with Session(engine) as session:
             session.add(Attachment(name="Huge File", content=fake_huge_file))
             with pytest.raises(SizeValidationError):
                 session.flush()
 
-    def test_size_validator_valid_size(self, fake_valid_file) -> None:
+    def test_size_validator_valid_size(self, engine, fake_valid_file) -> None:
         with Session(engine) as session:
             attachment = Attachment(name="Valid File Size", content=fake_valid_file)
             session.add(attachment)
@@ -76,9 +81,3 @@ class TestSizeValidator:
             print(type(attachment.content.file))
             print(attachment.content.file)
             assert attachment.content.file is not None
-
-    def teardown_method(self, method):
-        for obj in StorageManager.get().list_objects():
-            obj.delete()
-        StorageManager.get().delete()
-        Base.metadata.drop_all(engine)

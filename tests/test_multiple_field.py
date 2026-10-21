@@ -9,10 +9,20 @@ from sqlalchemy_file.mutable_list import MutableList
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 
-from tests.utils import get_test_container, get_test_engine
-
-engine = get_test_engine()
 Base = declarative_base()
+
+
+@pytest.fixture(autouse=True)
+def sqla_storage(engine, sqla_storage_factory):
+    """Set up the database schema and storage backend around each test."""
+    Base.metadata.create_all(engine)
+    StorageManager._clear()
+    StorageManager.add_storage("test", sqla_storage_factory("test-multiple-field"))
+    yield
+    for obj in StorageManager.get().list_objects():
+        obj.delete()
+    StorageManager.get().delete()
+    Base.metadata.drop_all(engine)
 
 
 @pytest.fixture
@@ -36,24 +46,15 @@ class Attachment(Base):
     multiple_content = Column(FileField(multiple=True))
 
     def __repr__(self):
-        return "<Attachment: id {} ; name: {}; multiple_content {}>".format(
-            self.id,
-            self.name,
-            self.multiple_content,
-        )  # pragma: no cover
+        return f"<Attachment: id {self.id} ; name: {self.name}; multiple_content {self.multiple_content}>"  # pragma: no cover
 
 
 class TestMultipleField:
-    def setup_method(self, method) -> None:
-        Base.metadata.create_all(engine)
-        StorageManager._clear()
-        StorageManager.add_storage("test", get_test_container("test-multiple-field"))
-
     def test_python_type(self) -> None:
         field = FileField(multiple=True)
         assert field.python_type == MutableList[File]
 
-    def test_create_multiple_content(self, fake_file, fake_content) -> None:
+    def test_create_multiple_content(self, engine, fake_file, fake_content) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -73,7 +74,9 @@ class TestMultipleField:
             assert attachment.multiple_content[1].file.read() == b"from bytes"
             assert attachment.multiple_content[2].file.read() == fake_content.encode()
 
-    def test_create_multiple_content_rollback(self, fake_file, fake_content) -> None:
+    def test_create_multiple_content_rollback(
+        self, engine, fake_file, fake_content
+    ) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -98,7 +101,7 @@ class TestMultipleField:
                 with pytest.raises(ObjectDoesNotExistError):
                     StorageManager.get_file(path)
 
-    def test_edit_existing_multiple_content(self) -> None:
+    def test_edit_existing_multiple_content(self, engine) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -121,7 +124,7 @@ class TestMultipleField:
                 with pytest.raises(ObjectDoesNotExistError):
                     StorageManager.get_file(path)
 
-    def test_edit_existing_multiple_content_rollback(self) -> None:
+    def test_edit_existing_multiple_content_rollback(self, engine) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -150,7 +153,7 @@ class TestMultipleField:
             for path in old_paths:
                 assert StorageManager.get_file(path) is not None
 
-    def test_edit_existing_multiple_content_add_element(self) -> None:
+    def test_edit_existing_multiple_content_add_element(self, engine) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -178,7 +181,7 @@ class TestMultipleField:
             assert attachment.multiple_content[3].file.read() == b"Content 4"
             assert attachment.multiple_content[4].file.read() == b"Content 5"
 
-    def test_edit_existing_multiple_content_add_element_rollback(self) -> None:
+    def test_edit_existing_multiple_content_add_element_rollback(self, engine) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -207,7 +210,7 @@ class TestMultipleField:
                 with pytest.raises(ObjectDoesNotExistError):
                     StorageManager.get_file(path)
 
-    def test_edit_existing_multiple_content_remove_element(self) -> None:
+    def test_edit_existing_multiple_content_remove_element(self, engine) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -242,7 +245,9 @@ class TestMultipleField:
                 with pytest.raises(ObjectDoesNotExistError):
                     StorageManager.get_file(file.path)
 
-    def test_edit_existing_multiple_content_remove_element_rollback(self) -> None:
+    def test_edit_existing_multiple_content_remove_element_rollback(
+        self, engine
+    ) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -269,7 +274,9 @@ class TestMultipleField:
             assert attachment.multiple_content[1].file.read() == b"Content 2"
             assert attachment.multiple_content[2].file.read() == b"Content 3"
 
-    def test_edit_existing_multiple_content_replace_element(self, fake_file) -> None:
+    def test_edit_existing_multiple_content_replace_element(
+        self, engine, fake_file
+    ) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -291,7 +298,7 @@ class TestMultipleField:
                 StorageManager.get_file(before_replaced_path)
 
     def test_edit_existing_multiple_content_replace_element_rollback(
-        self, fake_file
+        self, engine, fake_file
     ) -> None:
         with Session(engine) as session:
             session.add(
@@ -317,7 +324,7 @@ class TestMultipleField:
             with pytest.raises(ObjectDoesNotExistError):
                 StorageManager.get_file(new_path)
 
-    def test_delete_existing_multiple_content(self, fake_file) -> None:
+    def test_delete_existing_multiple_content(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -338,7 +345,7 @@ class TestMultipleField:
                 with pytest.raises(ObjectDoesNotExistError):
                     StorageManager.get().get_object(file_id)
 
-    def test_delete_existing_multiple_content_rollback(self, fake_file) -> None:
+    def test_delete_existing_multiple_content_rollback(self, engine, fake_file) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -360,9 +367,3 @@ class TestMultipleField:
             session.rollback()
             for file_id in file_ids:
                 assert StorageManager.get().get_object(file_id) is not None
-
-    def teardown_method(self, method):
-        for obj in StorageManager.get().list_objects():
-            obj.delete()
-        StorageManager.get().delete()
-        Base.metadata.drop_all(engine)

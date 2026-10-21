@@ -24,10 +24,11 @@ Before adding a storage, the first thing you need is to setup an apache libcloud
     from libcloud.storage.drivers.local import LocalStorageDriver
     from sqlalchemy_file.storage import StorageManager
 
-    os.makedirs("./upload_dir/attachment", 0o777, exist_ok=True) # Make sure the directory exist
+    os.makedirs(
+        "./upload_dir/attachment", 0o777, exist_ok=True
+    )  # Make sure the directory exist
     my_container = LocalStorageDriver("./upload_dir").get_container("attachment")
     StorageManager.add_storage("default", container)
-
     ```
 === "MinIO"
 
@@ -45,7 +46,6 @@ Before adding a storage, the first thing you need is to setup an apache libcloud
         pass
 
     my_container = driver.get_container(container_name="attachment")
-
     ```
 === "S3"
 
@@ -57,7 +57,6 @@ Before adding a storage, the first thing you need is to setup an apache libcloud
     driver = cls("api key", "api secret key")
 
     my_container = driver.get_container(container_name="attachment")
-
     ```
 For more examples, see [Apache Libcloud Storage Examples](https://libcloud.readthedocs.io/en/stable/storage/examples.html)
 
@@ -66,7 +65,6 @@ Then, you can easily add your container to the storage manager
 !!! example
 
     ```Python
-
     from sqlalchemy_file.storage import StorageManager
 
     StorageManager.add_storage("default", my_container)
@@ -101,7 +99,6 @@ second_container = LocalStorageDriver("./storage").get_container("second")
 
 StorageManager.add_storage("first", first_container)
 StorageManager.add_storage("second", second_container)
-
 ```
 
 ## Switching Default Storage
@@ -127,5 +124,4 @@ assert StorageManager.get_default() == "first"
 StorageManager.set_default("second")
 
 assert StorageManager.get_default() == "second"
-
 ```

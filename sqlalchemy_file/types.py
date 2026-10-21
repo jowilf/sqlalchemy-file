@@ -1,4 +1,5 @@
-from typing import Any, ClassVar, Dict, List, Optional, Set, Tuple, Type, Union
+import copy
+from typing import Any, ClassVar
 
 from sqlalchemy import event, inspect, orm, types
 from sqlalchemy.engine import Connection, Dialect
@@ -12,7 +13,7 @@ from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.validators import ImageValidator, Validator
 
 
-class FileField(types.TypeDecorator):  # type: ignore
+class FileField(types.TypeDecorator):
     """Provides support for storing attachments to **SQLAlchemy** models.
 
     [FileField][sqlalchemy_file.types.FileField] can be used as a Column type to
@@ -36,22 +37,22 @@ class FileField(types.TypeDecorator):  # type: ignore
     cache_ok = False
 
     @property
-    def python_type(self) -> Type[Union[File, List[File]]]:
+    def python_type(self) -> type[File | list[File]]:
         if self.multiple:
             return MutableList[File]
         return File
 
     def __init__(
         self,
-        *args: Tuple[Any],
-        upload_storage: Optional[str] = None,
-        validators: Optional[List[Validator]] = None,
-        processors: Optional[List[Processor]] = None,
-        upload_type: Type[File] = File,
-        multiple: Optional[bool] = False,
-        extra: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        **kwargs: Dict[str, Any],
+        *args: tuple[Any],
+        upload_storage: str | None = None,
+        validators: list[Validator] | None = None,
+        processors: list[Processor] | None = None,
+        upload_type: type[File] = File,
+        multiple: bool | None = False,
+        extra: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        **kwargs: dict[str, Any],
     ) -> None:
         """Parameters:
         upload_storage: storage to use
@@ -66,21 +67,19 @@ class FileField(types.TypeDecorator):  # type: ignore
         headers = {'Access-Control-Allow-Origin': 'http://mozilla.com'}.
         """
         super().__init__(*args, **kwargs)
-        if processors is None:
-            processors = []
-        if validators is None:
-            validators = []
+        # Copy caller-provided lists: field instances must not share
+        # or mutate them.
         self.upload_storage = upload_storage
         self.upload_type = upload_type
         self.multiple = multiple
         self.extra = extra
         self.headers = headers
-        self.validators = validators
-        self.processors = processors
+        self.validators = list(validators) if validators is not None else []
+        self.processors = list(processors) if processors is not None else []
 
     def process_bind_param(
         self, value: Any, dialect: Dialect
-    ) -> Union[None, Dict[str, Any], List[Dict[str, Any]]]:
+    ) -> dict[str, Any] | list[dict[str, Any]] | None:
         if not value:
             return None
         if not self.multiple and not isinstance(
@@ -98,7 +97,7 @@ class FileField(types.TypeDecorator):  # type: ignore
 
     def process_result_value(
         self, value: Any, dialect: Dialect
-    ) -> Union[None, MutableList[File], File]:
+    ) -> MutableList[File] | File | None:
         if value is None:
             return None
         if isinstance(value, dict):
@@ -119,17 +118,17 @@ class ImageField(FileField):
 
     def __init__(
         self,
-        *args: Tuple[Any],
-        upload_storage: Optional[str] = None,
-        thumbnail_size: Optional[Tuple[int, int]] = None,
-        image_validator: Optional[ImageValidator] = None,
-        validators: Optional[List[Validator]] = None,
-        processors: Optional[List[Processor]] = None,
-        upload_type: Type[File] = File,
-        multiple: Optional[bool] = False,
-        extra: Optional[Dict[str, str]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        **kwargs: Dict[str, Any],
+        *args: tuple[Any],
+        upload_storage: str | None = None,
+        thumbnail_size: tuple[int, int] | None = None,
+        image_validator: ImageValidator | None = None,
+        validators: list[Validator] | None = None,
+        processors: list[Processor] | None = None,
+        upload_type: type[File] = File,
+        multiple: bool | None = False,
+        extra: dict[str, str] | None = None,
+        headers: dict[str, str] | None = None,
+        **kwargs: dict[str, Any],
     ) -> None:
         """Parameters
         upload_storage: storage to use
@@ -145,13 +144,11 @@ class ImageField(FileField):
         multiple: Use this to save multiple files
         extra: Extra attributes (driver specific).
         """
-        if validators is None:
-            validators = []
+        validators = list(validators) if validators is not None else []
         if image_validator is None:
             image_validator = ImageValidator()
         if thumbnail_size is not None:
-            if processors is None:
-                processors = []
+            processors = list(processors) if processors is not None else []
             processors.append(ThumbnailGenerator(thumbnail_size))
         validators.append(image_validator)
         super().__init__(
@@ -168,10 +165,10 @@ class ImageField(FileField):
 
 
 class FileFieldSessionTracker:
-    mapped_entities: ClassVar[Dict[Type[Any], List[str]]] = {}
+    mapped_entities: ClassVar[dict[type[Any], list[str]]] = {}
 
     @classmethod
-    def delete_files(cls, paths: Set[str], ctx: str) -> None:
+    def delete_files(cls, paths: set[str], ctx: str) -> None:
         for path in paths:
             StorageManager.delete_file(path)
 
@@ -183,17 +180,17 @@ class FileFieldSessionTracker:
             del session._old_files
 
     @classmethod
-    def add_new_files_to_session(cls, session: Session, paths: List[str]) -> None:
-        session._new_files = getattr(session, "_new_files", set())  # type: ignore
-        session._new_files.update(paths)  # type: ignore
+    def add_new_files_to_session(cls, session: Session, paths: list[str]) -> None:
+        session._new_files = getattr(session, "_new_files", set())  # ty: ignore[unresolved-attribute]
+        session._new_files.update(paths)  # ty: ignore[unresolved-attribute]
 
     @classmethod
-    def add_old_files_to_session(cls, session: Session, paths: List[str]) -> None:
-        session._old_files = getattr(session, "_old_files", set())  # type: ignore
-        session._old_files.update(paths)  # type: ignore
+    def add_old_files_to_session(cls, session: Session, paths: list[str]) -> None:
+        session._old_files = getattr(session, "_old_files", set())  # ty: ignore[unresolved-attribute]
+        session._old_files.update(paths)  # ty: ignore[unresolved-attribute]
 
     @classmethod
-    def extract_files_from_history(cls, data: Union[Tuple[()], List[Any]]) -> List[str]:
+    def extract_files_from_history(cls, data: tuple[()] | list[Any]) -> list[str]:
         paths = []
         for item in data:
             if isinstance(item, list):
@@ -209,9 +206,9 @@ class FileFieldSessionTracker:
             if isinstance(mapper_property, ColumnProperty) and isinstance(
                 mapper_property.columns[0].type, FileField
             ):
-                assert (
-                    len(mapper_property.columns) == 1
-                ), "Multiple-column properties are not supported"
+                assert len(mapper_property.columns) == 1, (
+                    "Multiple-column properties are not supported"
+                )
                 if mapper_property.columns[0].type.multiple:
                     MutableList.associate_with_attribute(
                         getattr(class_, mapper_property.key)
@@ -243,12 +240,15 @@ class FileFieldSessionTracker:
         """After delete mark all linked files as old in order to delete
         them when after session is committed.
         """
-        tracked_columns: List[str] = cls.mapped_entities.get(mapper.class_, [])
+        session = inspect(obj).session
+        if session is None:  # pragma: no cover - detached object
+            return
+        tracked_columns: list[str] = cls.mapped_entities.get(mapper.class_, [])
         for key in tracked_columns:
             value = getattr(obj, key)
             if value is not None:
                 cls.add_old_files_to_session(
-                    inspect(obj).session,
+                    session,
                     flatmap(
                         [
                             f["files"]
@@ -262,7 +262,7 @@ class FileFieldSessionTracker:
         """After update, mark all edited files as old
         in order to delete them when after session is committed.
         """
-        tracked_columns: List[str] = cls.mapped_entities.get(mapper.class_, [])
+        tracked_columns: list[str] = cls.mapped_entities.get(mapper.class_, [])
         for key in tracked_columns:
             history = get_history(obj, key)
             cls.add_old_files_to_session(
@@ -276,7 +276,7 @@ class FileFieldSessionTracker:
         reinitialised after update.
         """
         session = inspect(obj).session
-        tracked_columns: List[str] = cls.mapped_entities.get(mapper.class_, [])
+        tracked_columns: list[str] = cls.mapped_entities.get(mapper.class_, [])
         for key in tracked_columns:
             value = getattr(obj, key)
             if value is not None:
@@ -298,7 +298,7 @@ class FileFieldSessionTracker:
         """Before inserting values, mark all created files as new. They will be
         automatically removed when session rollback.
         """
-        tracked_columns: List[str] = cls.mapped_entities.get(mapper.class_, [])
+        tracked_columns: list[str] = cls.mapped_entities.get(mapper.class_, [])
         for key in tracked_columns:
             value = getattr(obj, key)
             if value is not None:
@@ -310,8 +310,11 @@ class FileFieldSessionTracker:
 
     @classmethod
     def prepare_file_attr(
-        cls, mapper: Mapper, obj: Any, key: str  # type: ignore[type-arg]
-    ) -> Tuple[bool, Union[File, List[File]]]:
+        cls,
+        mapper: Mapper,
+        obj: Any,
+        key: str,  # type: ignore[type-arg]
+    ) -> tuple[bool, File | list[File]]:
         """Prepare file(s) for saving into the database by converting bytes or strings into
         File objects, applying validators, uploading the file(s) to the upload storage,
         and applying processors.
@@ -327,19 +330,15 @@ class FileFieldSessionTracker:
             allows multiple files, the prepared file objects are returned as a list.
         """
         value = getattr(obj, key)
-
-        """
-        The `changed` flag becomes True in two cases:
-        1. For a single-field attribute, when a new file is assigned, replacing the previous file.
-        2. For a multiple-field attribute, when new file objects are added to the existing ones.
-        """
+        # True when a new file replaces the previous one (single field)
+        # or new files are appended (multiple field).
         changed = False
 
-        column_type = mapper.attrs.get(key).columns[0].type  # type: ignore[misc,union-attr]
+        column_type = mapper.attrs.get(key).columns[0].type  # ty: ignore[unresolved-attribute]
         assert isinstance(column_type, FileField)
         upload_type = column_type.upload_type
 
-        prepared_values: List[File] = []
+        prepared_values: list[File] = []
         for v in value if isinstance(value, list) else [value]:
             if not isinstance(v, upload_type):
                 v = upload_type(v)  # noqa: PLW2901
@@ -351,13 +350,14 @@ class FileFieldSessionTracker:
         upload_storage = column_type.upload_storage or StorageManager.get_default()
         for value in prepared_values:
             if not getattr(value, "saved", False):
+                # Deep copy shared column-level config.
                 if column_type.extra is not None and value.get("extra", None) is None:
-                    value["extra"] = column_type.extra
+                    value["extra"] = copy.deepcopy(column_type.extra)
                 if (
                     column_type.headers is not None
                     and value.get("headers", None) is None
                 ):
-                    value["headers"] = column_type.headers
+                    value["headers"] = copy.deepcopy(column_type.headers)
                 value.save_to_storage(upload_storage)
                 value.apply_processors(column_type.processors, upload_storage)
         return changed, (

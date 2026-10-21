@@ -8,6 +8,20 @@ def test_init_value() -> None:
     assert arr == [1, 2, 3]
 
 
+def test_keep_traced_when_imul() -> None:
+    changed_calls: list[int] = []
+
+    class TrackedList(MutableList[int]):
+        def changed(self) -> None:
+            changed_calls.append(1)
+            super().changed()
+
+    arr: MutableList[int] = TrackedList([1, 2])
+    arr *= 2
+    assert arr == [1, 2, 1, 2]
+    assert len(changed_calls) == 1
+
+
 def test_keep_traced_when_pop() -> None:
     arr: MutableList[int] = MutableList([1, 2, 3])
     removed_item = arr.pop(1)

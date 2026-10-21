@@ -18,9 +18,9 @@ from flask import Flask, abort, render_template, request, send_file
 
 db = SQLAlchemy(engine_options={"echo": True})
 app = Flask(__name__)
-app.config[
-    "SQLALCHEMY_DATABASE_URI"
-] = "sqlite:////tmp/example.db?check_same_thread=False"
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    "sqlite:////tmp/example.db?check_same_thread=False"
+)
 db.init_app(app)
 
 

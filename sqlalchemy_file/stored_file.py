@@ -1,6 +1,5 @@
 import io
 import json
-from typing import Optional
 
 from libcloud.storage.base import Object
 from libcloud.storage.types import ObjectDoesNotExistError
@@ -20,12 +19,13 @@ class StoredFile(io.IOBase):
 
     def __init__(self, obj: Object) -> None:
         if obj.driver.name == LOCAL_STORAGE_DRIVER_NAME:
-            """Retrieve metadata from associated metadata file"""
+            # Read metadata from the `<name>.metadata.json` sidecar.
             try:
                 metadata_obj = obj.container.get_object(f"{obj.name}.metadata.json")
                 with open(metadata_obj.get_cdn_url()) as metadata_file:
                     obj.meta_data = json.load(metadata_file)
-            except ObjectDoesNotExistError:
+            except (ObjectDoesNotExistError, ValueError, OSError):
+                # Missing or corrupt sidecar: fall back to defaults.
                 pass
         self.name = obj.name
         self.filename = obj.meta_data.get("filename", "unnamed")
@@ -35,14 +35,16 @@ class StoredFile(io.IOBase):
         )
         self.object = obj
 
-    def get_cdn_url(self) -> Optional[str]:
+    def get_cdn_url(self) -> str | None:
         """Retrieves the CDN URL of the file if available."""
         try:
             return self.object.get_cdn_url()
         except NotImplementedError:
             return None
 
-    def read(self, n: int = -1, chunk_size: Optional[int] = None) -> bytes:
+    def read(  # ty: ignore[invalid-mutable-override]
+        self, n: int = -1, chunk_size: int | None = None
+    ) -> bytes:
         """Reads the content of the file.
 
         Arguments:
@@ -52,20 +54,22 @@ class StoredFile(io.IOBase):
                 If not specified, the default chunk size of the storage provider will be used.
 
         """
-        return next(
+        # Consume every chunk, otherwise large files are truncated
+        # to the first one.
+        return b"".join(
             self.object.range_as_stream(
                 0, end_bytes=n if n > 0 else None, chunk_size=chunk_size
             )
         )
 
     def close(self) -> None:
-        pass  # No need to close;
+        pass  # No-op: content is read from storage on demand.
 
     def seekable(self) -> bool:
-        return False  # Seeking is not supported ; pragma: no cover
+        return False  # Seeking is not supported.  # pragma: no cover
 
     def writable(self) -> bool:
-        return False  # Writing is not supported ; pragma: no cover
+        return False  # Writing is not supported.  # pragma: no cover
 
     def readable(self) -> bool:
-        return True  # Reading is supported ; pragma: no cover
+        return True  # Reading is supported.  # pragma: no cover

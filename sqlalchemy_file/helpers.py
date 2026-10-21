@@ -4,14 +4,14 @@ import os
 import re
 from builtins import RuntimeError
 from tempfile import SpooledTemporaryFile
-from typing import Any, Dict, List, Union
+from typing import Any
 
 INMEMORY_FILESIZE = 1024 * 1024
 LOCAL_STORAGE_DRIVER_NAME = "Local Storage"
 
 
-def get_metadata_file_obj(metadata: Dict[str, Any]) -> "SpooledTemporaryFile[bytes]":
-    f = SpooledTemporaryFile(INMEMORY_FILESIZE)
+def get_metadata_file_obj(metadata: dict[str, Any]) -> "SpooledTemporaryFile[bytes]":
+    f = SpooledTemporaryFile(INMEMORY_FILESIZE)  # noqa: SIM115
     f.write(json.dumps(metadata).encode())
     f.seek(0)
     return f
@@ -23,7 +23,7 @@ def get_content_from_file_obj(fileobj: Any) -> Any:
     Converts ``str`` and ``bytes`` to an actual file.
     """
     if isinstance(fileobj, (str, bytes)):
-        f = SpooledTemporaryFile(INMEMORY_FILESIZE)
+        f = SpooledTemporaryFile(INMEMORY_FILESIZE)  # noqa: SIM115
         f.write(fileobj.encode() if isinstance(fileobj, str) else fileobj)
         f.seek(0)
         return f
@@ -33,10 +33,13 @@ def get_content_from_file_obj(fileobj: Any) -> Any:
 
 
 def get_filename_from_fileob(fileobj: Any) -> Any:
-    if getattr(fileobj, "filename", None) is not None:
-        return fileobj.filename
-    if getattr(fileobj, "name", None) is not None:
-        return os.path.basename(fileobj.name)
+    filename = getattr(fileobj, "filename", None)
+    if filename:
+        return filename
+    name = getattr(fileobj, "name", None)
+    # `name` can be a raw file descriptor (int).
+    if isinstance(name, str):
+        return os.path.basename(name)
     return "unnamed"
 
 
@@ -47,8 +50,9 @@ def get_content_type_from_fileobj(fileobj: Any, filename: str) -> Any:
 
 
 def get_content_size_from_fileobj(file: Any) -> Any:
-    if hasattr(file, "size"):
-        return file.size
+    size = getattr(file, "size", None)
+    if size is not None:
+        return size
     if hasattr(file, "name"):
         try:
             return os.path.getsize(file.name)
@@ -63,19 +67,18 @@ def get_content_size_from_fileobj(file: Any) -> Any:
     raise RuntimeError("Unable to determine the file's size.")  # pragma: no cover
 
 
-def convert_size(size: Union[str, int]) -> int:
-    # convert size to number of bytes ex: 1k -> 1000; 1Ki->1024
+def convert_size(size: str | int) -> int:
+    """Convert a human readable size to a number of bytes: ``1k`` -> 1000, ``1Ki`` -> 1024."""
     if isinstance(size, str):
-        pattern = re.compile(r"^(\d+)\s*(k|([KM]i?))$")
-        m = re.fullmatch(pattern, size)
+        m = re.fullmatch(r"^(\d+)\s*(k|([KM]i?))$", size)
         if m is None:
-            raise ValueError("Invalid size %s" % size)
+            raise ValueError(f"Invalid size {size}")
         value, si, _ = m.groups()
         si_map = {"k": 1000, "K": 1000, "M": 1000**2, "Ki": 1024, "Mi": 1024**2}
         return int(value) * si_map[si]
     return size
 
 
-def flatmap(lists: List[List[Any]]) -> List[Any]:
+def flatmap(lists: list[list[Any]]) -> list[Any]:
     """Flattens a list of lists into a single list."""
     return [value for _list in lists for value in _list]

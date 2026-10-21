@@ -5,10 +5,20 @@ from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy_file.storage import StorageManager
 from sqlalchemy_file.types import FileField
 
-from tests.utils import get_test_container, get_test_engine
-
-engine = get_test_engine()
 Base = declarative_base()
+
+
+@pytest.fixture(autouse=True)
+def sqla_storage(engine, sqla_storage_factory):
+    """Set up the database schema and storage backend around each test."""
+    Base.metadata.create_all(engine)
+    StorageManager._clear()
+    StorageManager.add_storage("first", sqla_storage_factory("first"))
+    StorageManager.add_storage("second", sqla_storage_factory("second"))
+    yield
+    StorageManager.get("first").delete()
+    StorageManager.get("second").delete()
+    Base.metadata.drop_all(engine)
 
 
 class Attachment(Base):
@@ -21,13 +31,7 @@ class Attachment(Base):
 
 
 class TestMultipleStorage:
-    def setup_method(self, method) -> None:
-        Base.metadata.create_all(engine)
-        StorageManager._clear()
-        StorageManager.add_storage("first", get_test_container("first"))
-        StorageManager.add_storage("second", get_test_container("second"))
-
-    def test_multiple_storage(self) -> None:
+    def test_multiple_storage(self, engine) -> None:
         with Session(engine) as session:
             session.add(
                 Attachment(
@@ -49,8 +53,3 @@ class TestMultipleStorage:
             with pytest.raises(ObjectDoesNotExistError):
                 StorageManager.get("second").get_object(first_fileid)
             session.rollback()
-
-    def teardown_method(self, method):
-        StorageManager.get("first").delete()
-        StorageManager.get("second").delete()
-        Base.metadata.drop_all(engine)
