@@ -104,7 +104,7 @@ conflicts = [
         { group = "sqla21" },
     ],
 ]
-# sqla21 default so plain `uv sync` tests the 2.1 series. sqla20 is opt-in;
+# sqla21 default so plain `uv sync` tests the 2.1 series. sqla20 is opt-in.
 # conflicting groups require `uv run --no-default-groups --group sqla20 ...`.
 default-groups = ["dev", "lint", "test", "cov", "docs", "sqla21"]
 

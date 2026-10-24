@@ -66,10 +66,10 @@ installed when you install SQLAlchemy-file.
 $ pip install sqlalchemy-file
 ```
 
-### Poetry
+### uv
 
 ```shell
-$ poetry add sqlalchemy-file
+$ uv add sqlalchemy-file
 ```
 
 ### Optional dependencies (extras)
@@ -87,7 +87,7 @@ $ pip install "sqlalchemy-file[local,pillow]"
 ```
 
 ```shell
-$ poetry add "sqlalchemy-file[all]"
+$ uv add "sqlalchemy-file[all]"
 ```
 
 Without the matching extra you get an explicit `ImportError` telling you which extra to install

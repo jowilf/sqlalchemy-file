@@ -53,7 +53,7 @@ The key features are:
 ## Requirements
 
 A recent and currently supported version of Python (right
-now, <a href="https://www.python.org/downloads/" class="external-link" target="_blank">Python supports versions 3.7 and
+now, <a href="https://www.python.org/downloads/" class="external-link" target="_blank">Python supports versions 3.11 and
 above</a>).
 
 As **SQLAlchemy-file** is based on **Apache Libcloud** and **SQLAlchemy**, it requires them. They will be automatically
@@ -67,10 +67,28 @@ installed when you install SQLAlchemy-file.
 $ pip install sqlalchemy-file
 ```
 
-### Poetry
+### uv
 
 ```shell
-$ poetry add sqlalchemy-file
+$ uv add sqlalchemy-file
+```
+
+### Optional dependencies (extras)
+
+Some features need third-party packages that are **not** installed by default:
+
+| Extra                          | Installs                                    | Required for                                                        |
+|--------------------------------|---------------------------------------------|---------------------------------------------------------------------|
+| `sqlalchemy-file[pillow]`      | `Pillow`                                    | `ImageField`, `ImageValidator`, `ThumbnailGenerator`                |
+| `sqlalchemy-file[local]`       | `fasteners`                                 | `LocalStorageDriver` backend (required by libcloud's local storage) |
+| `sqlalchemy-file[all]`         | `Pillow` + `fasteners`                      | Everything above                                                    |
+
+```shell
+$ pip install "sqlalchemy-file[local,pillow]"
+```
+
+```shell
+$ uv add "sqlalchemy-file[all]"
 ```
 
 ## Example
