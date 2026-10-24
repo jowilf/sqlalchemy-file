@@ -10,10 +10,10 @@ You can simply install **SQLAlchemy-file** from the PyPi:
 $ pip install sqlalchemy-file
 ```
 
-### Poetry
+### uv
 
 ```shell
-$ poetry add sqlalchemy-file
+$ uv add sqlalchemy-file
 ```
 
 ## Usage
